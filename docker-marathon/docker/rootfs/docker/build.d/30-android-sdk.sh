@@ -8,7 +8,7 @@ wget -nv -O platform-tools.zip https://dl.google.com/android/repository/platform
 unzip -q platform-tools.zip -d ${ANDROID_HOME} && \
 rm -rf platform-tools.zip
 
-wget -nv -O sys-img.zip https://dl.google.com/android/repository/sys-img/google_apis_playstore/x86-30_r09-linux.zip && \
+wget -nv -O sys-img.zip https://dl.google.com/android/repository/sys-img/google_apis/x86-30_r09.zip && \
 unzip -q sys-img.zip -d ${ANDROID_HOME}/system-images/android-30/google_apis/ && \
 rm -rf sys-img.zip
 
