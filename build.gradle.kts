@@ -8,3 +8,6 @@ version = "1.0"
 repositories {
     mavenCentral()
 }
+dependencies {
+    implementation(kotlin("script-runtime"))
+}

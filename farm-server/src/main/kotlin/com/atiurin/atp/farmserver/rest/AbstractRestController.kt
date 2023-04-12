@@ -8,6 +8,7 @@ abstract class AbstractRestController {
             operation()
         } catch (ex: Exception) {
             ex.message?.let { println(it) }
+            ex.stackTrace.forEach { println(it) }
             T::class.java.getConstructor().newInstance().also { response ->
                 response.success = false
                 response.message = ex.message.toString()

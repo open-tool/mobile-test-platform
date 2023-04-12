@@ -7,7 +7,4 @@ data class Device(
     val dockerImage: String,
     val ip: String,
     val adbConnectPort: Int,
-    val adbServerSocketPort: Int,
-    val telnetPort: Int,
-    val vncPort: Int
 )

@@ -4,11 +4,20 @@ import com.atiurin.atp.farmcore.responses.BaseResponse
 import com.atiurin.atp.farmcore.responses.GetDevicesResponse
 import com.atiurin.atp.farmcore.responses.GetPoolDevicesResponse
 import com.atiurin.atp.farmserver.*
+import com.atiurin.atp.farmserver.images.AndroidImage
+import com.atiurin.atp.farmserver.pool.DevicePool
+import com.atiurin.atp.farmserver.pool.DevicePoolProvider
+import com.atiurin.atp.farmserver.pool.toPoolDevice
+import com.atiurin.atp.farmserver.provider.DeviceProvider
+import com.atiurin.atp.farmserver.provider.TestContainersDeviceProvider
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/device")
 class DeviceRestController : AbstractRestController() {
+    private final val devicePool: DevicePool = DevicePoolProvider.devicePool
+    val deviceProvider: DeviceProvider = devicePool.deviceProvider
+
     @GetMapping("/acquire")
     fun acquire(
         @RequestParam amount: Int,
@@ -16,7 +25,7 @@ class DeviceRestController : AbstractRestController() {
         @RequestParam userAgent: String
     ): GetDevicesResponse {
         return processRequest {
-            val devices = DevicePool.acquire(amount, api, userAgent).map { it.toDevice() }
+            val devices = devicePool.acquire(amount, api, userAgent).map { it.toDevice() }
             GetDevicesResponse(devices)
         }
     }
@@ -27,8 +36,8 @@ class DeviceRestController : AbstractRestController() {
         @RequestParam name: String
     ): GetDevicesResponse {
         return processRequest {
-            val device = createDevice(DeviceInfo(name, api, getDeviceImageForApi(api)))
-            DevicePool.join(device)
+            val device = deviceProvider.createDevice(DeviceInfo(name, api))
+            devicePool.join(device)
             GetDevicesResponse(devices = listOf(device.toDevice()))
         }
     }
@@ -40,7 +49,7 @@ class DeviceRestController : AbstractRestController() {
     ): BaseResponse {
         //TODO support async device creation
         return processRequest {
-            DevicePool.join(createDevice(DeviceInfo(name, api, getDeviceImageForApi(api))))
+            devicePool.join(deviceProvider.createDevice(DeviceInfo(name, api)))
             BaseResponse()
         }
     }
@@ -48,23 +57,15 @@ class DeviceRestController : AbstractRestController() {
     @GetMapping("/list")
     fun list(): GetPoolDevicesResponse {
         return processRequest {
-            val poolDevices = DevicePool.all().map { it.toPoolDevice() }
+            val poolDevices = devicePool.all().map { it.toPoolDevice() }
             GetPoolDevicesResponse(poolDevices)
         }
     }
 
-//    @PostMapping("/release")
-//    fun release(@RequestParam deviceId: String): BaseResponse {
-//        return processRequest {
-//            DevicePool.release(deviceId)
-//            BaseResponse()
-//        }
-//    }
-
     @PostMapping("/release")
     fun release(@RequestParam deviceIds: List<String>): BaseResponse {
         return processRequest {
-            DevicePool.release(deviceIds)
+            devicePool.release(deviceIds)
             BaseResponse()
         }
     }
@@ -72,7 +73,7 @@ class DeviceRestController : AbstractRestController() {
     @PostMapping("/remove")
     fun remove(@RequestParam deviceId: String): BaseResponse {
         return processRequest {
-            DevicePool.remove(deviceId)
+            devicePool.remove(deviceId)
             BaseResponse()
         }
     }

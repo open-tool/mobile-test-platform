@@ -12,6 +12,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(project(":farm-client"))
+    implementation("org.apache.commons:commons-exec:1.3")
     implementation("com.github.ajalt.clikt:clikt:3.2.0")
 }
 

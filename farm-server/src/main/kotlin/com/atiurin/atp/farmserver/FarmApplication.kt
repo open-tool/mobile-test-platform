@@ -1,85 +1,48 @@
 package com.atiurin.atp.farmserver
 
+import com.atiurin.atp.farmserver.config.ConfigProvider
+import com.atiurin.atp.farmserver.config.Config
+import com.atiurin.atp.farmserver.monitor.Monitor
 import com.atiurin.atp.farmserver.node.NodeRepository
+import com.atiurin.atp.farmserver.pool.DevicePool
+import com.atiurin.atp.farmserver.pool.DevicePoolProvider
+import com.atiurin.atp.farmserver.provider.DeviceProviderContainer.deviceProvider
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.types.int
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.wait.strategy.Wait
-import org.testcontainers.utility.DockerImageName
-import java.util.*
+
 
 @SpringBootApplication
-class FarmApplication : CliktCommand(){
+class FarmApplication : CliktCommand() {
+    val devicePool = DevicePoolProvider.devicePool
+    val maxAmount by option("-m", "--max_amount").int().required()
+    val keepAliveAmount by option("-ka", "--keep_alive_amount").int().required()
+    val defaultApiValue by option("-da", "--default_api").int().required()
+    val initialDevices = mutableListOf<DeviceInfo>()
 
+    @Bean
+    fun createRepo(deviceRepository: NodeRepository) = CommandLineRunner {
+        initialDevices.forEach { device ->
+            devicePool.join(deviceProvider.createDevice(device))
+        }
+        println(devicePool.all().map { it.device.containerInfo.adbPort })
+    }
 
-	val initialDevices = listOf<DeviceInfo>(
-		DeviceInfo(name = "android-api-27", api = 27, dockerImage = "android-api-27:latest")
-	)
-	@Bean
-	fun createRepo(deviceRepository: NodeRepository) = CommandLineRunner{
-		initialDevices.forEach { device ->
-			DevicePool.join(createDevice(device))
-		}
-	}
-
-	override fun run() {
-		runApplication<FarmApplication>()
-	}
+    override fun run() {
+        runApplication<FarmApplication>()
+        ConfigProvider.set {
+            maxDevicesAmount = maxAmount
+            keepAliveDevicesAmount = keepAliveAmount
+            defaultApi = defaultApiValue
+        }
+        Monitor.startMonitors()
+    }
 }
 
 fun main(args: Array<String>) = FarmApplication().main(args)
 
-fun createDevice(info: DeviceInfo): FarmDevice {
-	val containerOptions = mapOf(
-		"ANDROID_ARCH" to "x86"
-	)
-	val container = GenericContainer<Nothing>(DockerImageName.parse(info.dockerImage)).apply {
-		withLabels(containerOptions)
-	}
-	startContainer(container)
-	val vncPort = container.getMappedPort(5900)
-	val adbPort = container.getMappedPort(5555)
-	val telnetPort = container.getMappedPort(5554)
-	val socketPort = container.getMappedPort(5037)
-	println("ip: ${container.host}, vncPort: $vncPort, adbPort: $adbPort, adbTelnet: $telnetPort, socketPort: $socketPort")
-	return FarmDevice(
-		UUID.randomUUID().toString(), info,
-		ContainerInfo(vncPort = vncPort, adbPort = adbPort, telnetPort = telnetPort, adbServerSocketPort = socketPort, ip = container.host),
-		container)
-}
-
-fun startContainer(container: GenericContainer<Nothing>){
-	container.apply {
-		println("Start container")
-		withPrivilegedMode(true)
-		withExposedPorts(5900, 5554, 5555, 5037)
-
-//		withLogConsumer(Slf4jLogConsumer(App.logger))
-//        withEnv(mapOf("ENABLE_VNC" to "true"))
-		start()
-		waitingFor(Wait.forHealthcheck())
-		var emulStarted = false
-		while (!emulStarted){
-			val outLines = container.execInContainer("adb", "devices").stdout.reader().readLines()
-			outLines.forEach { line ->
-				if (line == "emulator-5554\tdevice") emulStarted = true
-			}
-		}
-		println("Emulator started")
-		var packageServiceStarted = false
-		while (!packageServiceStarted){
-			val outLines = container.execInContainer("adb",  "shell", "service", "check", "package").stdout.reader().readLines()
-			outLines.forEach { line ->
-				if (line == "Service package: found") packageServiceStarted = true
-			}
-		}
-		println("Service package: found")
-	}
-}
-
-fun getDeviceImageForApi(api: Int): String {
-	return "android-api-$api:latest"
-}

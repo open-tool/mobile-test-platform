@@ -10,12 +10,13 @@ version = "0.0.1"
 
 repositories {
     mavenCentral()
+    google()
 }
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("com.github.ajalt.clikt:clikt:3.2.0")
-    implementation("com.malinskiy:adam:0.2.5")
+    implementation("com.malinskiy.adam:adam:0.5.0")
     implementation("com.google.guava:guava:26.0-jre")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
     implementation ("com.squareup.retrofit2:retrofit:2.7.0")
