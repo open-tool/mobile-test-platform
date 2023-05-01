@@ -1,27 +1,67 @@
 package com.atiurin.atp.farmcliclient
 
+import com.atiurin.atp.farmcliclient.commands.AcquireCommand
+import com.atiurin.atp.farmcliclient.commands.MarathonTestRunCommand
+import com.atiurin.atp.farmclient.FarmClientConfig
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.arguments.argument
+import com.github.ajalt.clikt.parameters.options.associate
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
-import org.apache.commons.exec.CommandLine
-import org.apache.commons.exec.DefaultExecutor
+import org.apache.commons.exec.environment.EnvironmentUtils
 import kotlin.system.exitProcess
 
+var log = Log()
+
+class Log(){
+    fun info(block: ()-> Any?) = println(block())
+    fun error(block: ()-> Any?) = println(block())
+}
+
 class CliApp : CliktCommand() {
-//    val url: String by option("-u", "--url").required()
+    val url: String? by option("-u", "--url")
     val command : Command? by option("-c", "--command").enum<Command>()
-    val amount by  option("-a", "--amount").int()
-    val serial by  option("-s", "--serial")
+    val deviceAmount by  option("-da", "--device_amount").int().required()
+    val api by  option("-a", "--api").int().required()
+    val runCommand by option("-rc", "--run_command")
+    val allure by option("-aw","--allure").flag()
+    val marathon by option("-m", "--marathon").flag()
+    val marathonConfigFilePath by option("-mc", "--marathon_config")
+    val environments: Map<String, String> by option("-e", "--env").associate()
+    val marathonAdbPortVariable by option("-mapv","--marathon_adb_port_variable")
+    val userAgent by option("-ua", "--user_agent")
 
     override fun run() {
-        val cmdLine = CommandLine.parse("/home/atiurin/Android/marathon-0.7.6/bin/marathon --version")
-        val executor = DefaultExecutor()
-        val output = executor.execute(cmdLine)
+        println(allure)
+        FarmClientProvider.init(FarmClientConfig(
+            farmUrl = url ?: "http://localhost:8080",
+            userAgent = userAgent ?: getGitlabProjectId() ?: "test"
+        ))
+        when(command){
+            Command.ACQUIRE -> {
+                AcquireCommand(deviceAmount, api).execute()
+            }
+            else -> runMarathon()
+        }
+    }
 
-        println(output)
+    fun runMarathon(){
+        log.info { "Run marathon launch with environment $environments" }
+        val isSuccess = MarathonTestRunCommand(
+            deviceAmount = deviceAmount,
+            api = api,
+            isAllure = allure,
+            marathonConfigFilePath = marathonConfigFilePath,
+            adbPortVariable = marathonAdbPortVariable,
+            envs = environments
+        ).execute()
+        if (!isSuccess) exitProcess(1)
+    }
+
+    fun getGitlabProjectId(): String? {
+        return EnvironmentUtils.getProcEnvironment()["CI_PROJECT_TITLE"]
     }
 }
 

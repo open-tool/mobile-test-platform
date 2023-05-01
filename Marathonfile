@@ -1,0 +1,41 @@
+name: "Android UI Tests"
+outputDir: "marathon-report"
+isCodeCoverageEnabled: true
+batchingStrategy:
+  type: "fixed-size"
+  size: 5
+  durationMillis: 100000
+  percentile: 80.0
+  timeLimit: "-PT1H"
+  lastMileLength: 10
+retryStrategy:
+  type: "fixed-quota"
+  totalAllowedRetryQuota: 100
+  retryPerTestQuota: 2
+vendorConfiguration:
+  type: "Android"
+  installOptions: "-t"
+  screenRecordConfiguration:
+    preferableRecorderType: "screenshot"
+    videoConfiguration:
+      enabled: false
+      width: 1080
+      height: 1920
+      bitrateMbps: 2
+      timeLimit: 300
+    screenshotConfiguration:
+      enabled: false
+      width: 1080
+      height: 1920
+      delayMs: 200
+  outputs:
+  - application: "app-debug.apk"
+    testApplication: "app-debug-androidTest_failed.apk"
+  autoGrantPermission: true
+  applicationPmClear: true
+  testApplicationPmClear: true
+  vendor: ADAM
+  waitForDevicesTimeoutMillis: 60000
+  allureConfiguration:
+    enabled: true
+deviceInitializationTimeoutMillis: 180000

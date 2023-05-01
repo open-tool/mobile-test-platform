@@ -4,17 +4,16 @@ import com.atiurin.atp.farmserver.ContainerInfo
 import com.atiurin.atp.farmserver.DeviceInfo
 import com.atiurin.atp.farmserver.FarmDevice
 import com.atiurin.atp.farmserver.images.AndroidImage
+import com.atiurin.atp.farmserver.logging.log
 import com.github.dockerjava.api.model.Device
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
 import java.util.*
 
 class TestContainersDeviceProvider : DeviceProvider {
-    override fun createDevice(info: DeviceInfo): FarmDevice {
-        val image = AndroidImage.get(info.api)
+    override fun createDevice(deviceInfo: DeviceInfo): FarmDevice {
+        log.info { "Start device creation $deviceInfo"}
+        val image = AndroidImage.get(deviceInfo.api)
         val container = GenericContainer<Nothing>(DockerImageName.parse(image)).apply {
             withCreateContainerCmdModifier { cmd ->
                 cmd.hostConfig?.withDevices(Device("rwm", "/dev/kvm", "/dev/kvm"))
@@ -24,9 +23,9 @@ class TestContainersDeviceProvider : DeviceProvider {
         startContainer(container)
         val adbPort = container.getMappedPort(5555)
         val gRpcPort = container.getMappedPort(8554)
-        println("ip: ${container.host}, adbPort: $adbPort, gRpcPort: $gRpcPort")
+        log.info { "ip: ${container.host}, adbPort: $adbPort, gRpcPort: $gRpcPort" }
         return FarmDevice(
-            UUID.randomUUID().toString(), info,
+            UUID.randomUUID().toString(), deviceInfo,
             ContainerInfo(
                 adbPort = adbPort,
                 ip = container.host,
@@ -45,7 +44,7 @@ class TestContainersDeviceProvider : DeviceProvider {
 
     private fun startContainer(container: GenericContainer<Nothing>) {
         container.apply {
-            println("Start container")
+            log.info { "Start container" }
             withPrivilegedMode(true)
             withExposedPorts(5555)
             withExposedPorts(8554)

@@ -3,6 +3,7 @@ package com.atiurin.atp.farmserver.pool
 import com.atiurin.atp.farmserver.DeviceInfo
 import com.atiurin.atp.farmserver.FarmDevice
 import com.atiurin.atp.farmserver.config.ConfigProvider
+import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.provider.DeviceProvider
 import com.atiurin.atp.farmserver.provider.DeviceProviderContainer
 import kotlinx.coroutines.GlobalScope
@@ -14,13 +15,14 @@ import java.lang.RuntimeException
  * customize behaviour for different device types
  */
 abstract class DevicePool {
-    val deviceProvider = DeviceProviderContainer.deviceProvider
+    abstract val deviceProvider : DeviceProvider
 
     private val devices = mutableListOf<FarmPoolDevice>()
 
     fun all() = devices.toList()
 
     fun remove(deviceId: String) {
+        log.info { "Remove device $deviceId" }
         synchronized(devices) {
             GlobalScope.async {
                 devices.find { it.device.id == deviceId }?.let {
@@ -42,16 +44,14 @@ abstract class DevicePool {
         }
     }
 
-    fun create(amount: Int = 1, api: Int){
+    fun create(amount: Int = 1, api: Int) {
+        log.info { "Create $amount new devices with api $api" }
         synchronized(devices) {
             repeat(amount) {
-                devices.add(
-                    FarmPoolDevice(
-                        deviceProvider.createDevice(
-                            DeviceInfo("AutoLaunched api $api", api)
-                        )
-                    )
+                val newDevice = deviceProvider.createDevice(
+                    DeviceInfo("AutoLaunched api $api", api)
                 )
+                devices.add(FarmPoolDevice(newDevice))
             }
         }
     }
@@ -61,34 +61,39 @@ abstract class DevicePool {
             val availableDevices = getAvailableDevices(api)
             val deviceToBeAcquiredAmount = if (availableDevices.size < amount) {
                 tryToCreateRequiredDevices(amount, availableDevices.size, api)
+                getAvailableDevices(api).size
             } else amount
 
             val acquiredDevices = mutableListOf<FarmPoolDevice>()
             for (i in 1..deviceToBeAcquiredAmount) {
-                if (getAvailableDevices(api).isNotEmpty()){
-                    acquiredDevices.add(getAvailableDevices(api).random())
+                if (getAvailableDevices(api).isNotEmpty()) {
+                    val device = getAvailableDevices(api).random()
+                    device.apply {
+                        this.userAgent = userAgent
+                        this.isBusy = true
+                        this.busyTimestamp = System.currentTimeMillis()
+                    }
+                    acquiredDevices.add(device)
                 }
             }
-            acquiredDevices.forEach {
-                it.userAgent = userAgent
-                it.isBusy = true
-                it.busyTimestamp = System.currentTimeMillis()
-            }
-            return acquiredDevices.map { it.device }
+            val acquired = acquiredDevices.map { it.device }
+            log.info { "Acquired devices by userAgent: $userAgent: $acquired" }
+            return acquired
         }
     }
 
     /**
      * Return amount of started devices
      */
-    private fun tryToCreateRequiredDevices(amount: Int, availableAmount: Int, api: Int): Int {
+    private fun tryToCreateRequiredDevices(requestedAmount: Int, availableAmount: Int, api: Int): Int {
         if (devices.size >= ConfigProvider.get().maxDevicesAmount) {
             throw RuntimeException("Couldn't provide device now, farm runs to much devices (${devices.size}). Try again later")
         }
         val availableToRun = ConfigProvider.get().maxDevicesAmount - devices.size
-        val requiredToRun = amount - availableAmount
+        val requiredToRun = requestedAmount - availableAmount
         val runAmount = if (requiredToRun > availableToRun) availableToRun else requiredToRun
-        println("availableToRun = $availableToRun, requiredToRun = $requiredToRun, runAmount = $runAmount")
+        log.info { "tryToCreateRequiredDevices: availableToRun = $availableToRun, requiredToRun = $requiredToRun, runAmount = $runAmount" }
+
         create(runAmount, api)
         return runAmount
     }
@@ -98,6 +103,7 @@ abstract class DevicePool {
     }
 
     open fun release(deviceId: String) {
+        log.info { "Release device $deviceId" }
         synchronized(devices) {
             devices.find { it.device.id == deviceId }?.let { poolDevice ->
                 poolDevice.apply {

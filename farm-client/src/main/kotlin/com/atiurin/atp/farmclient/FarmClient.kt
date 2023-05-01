@@ -31,8 +31,12 @@ class FarmClient(private val config: FarmClientConfig) {
         val body = execute(deviceService.acquire(amount, api, config.userAgent)).body()
         return if (body?.devices == null || body.devices.isEmpty()) {
             throw FarmServerException("Couldn't acquire devices from farm, reason: ${body?.message}")
-        } else body.devices.apply {
-            acquiredDevices.addAll(this)
+        } else {
+            println(body)
+            body.devices.apply {
+                acquiredDevices.addAll(this)
+            }
+            acquiredDevices
         }
     }
 
@@ -44,6 +48,7 @@ class FarmClient(private val config: FarmClientConfig) {
     }
 
     fun releaseAllCaptured() {
+        println("Release all captured devices: ${acquiredDevices.joinToString(",") { it.id }}")
         release(acquiredDevices.map { it.id })
     }
 
@@ -53,6 +58,7 @@ class FarmClient(private val config: FarmClientConfig) {
 
     private fun <T : BaseResponse> execute(call: Call<T>): Response<T> {
         val response = call.execute()
+//        println(response)
         if (response.code() == 500) {
             throw FarmServerException("Internal server error: " + response.message())
         }
