@@ -3,8 +3,9 @@ plugins {
     kotlin("jvm")
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+val appVersion: String by project
+version = appVersion
+group = "com.atiurin.atp.farmclient"
 
 repositories {
     mavenCentral()

@@ -4,8 +4,9 @@ plugins {
     kotlin("jvm")
 }
 
-group = "farm-cli-client"
-version = "0.1.2"
+val appVersion: String by project
+version = appVersion
+group = "com.atiurin.atp.farmcliclient"
 
 application {
     mainClass.set("com.atiurin.atp.farmcliclient.CliAppKt")

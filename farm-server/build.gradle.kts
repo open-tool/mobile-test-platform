@@ -10,8 +10,10 @@ plugins {
     kotlin("plugin.spring") version "1.6.0"
 }
 
+val appVersion: String by project
+version = appVersion
 group = "com.atiurin.atp.farm"
-version = "0.1.2"
+
 
 java.sourceCompatibility = JavaVersion.VERSION_11
 
