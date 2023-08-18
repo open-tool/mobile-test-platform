@@ -15,43 +15,51 @@ import kotlin.system.exitProcess
 
 var log = Log()
 
-class Log(){
-    fun info(block: ()-> Any?) = println(block())
-    fun error(block: ()-> Any?) = println(block())
+class Log() {
+    fun info(block: () -> Any?) = println(block())
+    fun error(block: () -> Any?) = println(block())
 }
 
 class CliApp : CliktCommand() {
     val url: String? by option("-u", "--url")
-    val command : Command? by option("-c", "--command").enum<Command>()
-    val deviceAmount by  option("-da", "--device_amount").int().required()
-    val api by  option("-a", "--api").int().required()
+    val command: Command? by option("-c", "--command").enum<Command>()
+    val deviceAmount by option("-da", "--device_amount").int().required()
+
+    @Deprecated("api option will be deleted soon. Use groupId")
+    val api by option("-a", "--api").required()
+    val groupId by option("-g", "--group_id")
     val runCommand by option("-rc", "--run_command")
-    val allure by option("-aw","--allure").flag()
+    val allure by option("-aw", "--allure").flag()
     val marathon by option("-m", "--marathon").flag()
     val marathonConfigFilePath by option("-mc", "--marathon_config")
     val environments: Map<String, String> by option("-e", "--env").associate()
-    val marathonAdbPortVariable by option("-mapv","--marathon_adb_port_variable")
+    val marathonAdbPortVariable by option("-mapv", "--marathon_adb_port_variable")
     val userAgent by option("-ua", "--user_agent")
 
     override fun run() {
         println(allure)
-        FarmClientProvider.init(FarmClientConfig(
-            farmUrl = url ?: "http://localhost:8080",
-            userAgent = userAgent ?: getGitlabProjectId() ?: "test"
-        ))
-        when(command){
+        val group = groupId ?: api
+        FarmClientProvider.init(
+            FarmClientConfig(
+                farmUrl = url ?: "http://localhost:8080",
+                userAgent = userAgent ?: getGitlabProjectId() ?: "test"
+            )
+        )
+        when (command) {
             Command.ACQUIRE -> {
-                AcquireCommand(deviceAmount, api).execute()
+                AcquireCommand(deviceAmount, group).execute()
             }
-            else -> runMarathon()
+
+            else -> runMarathon(group)
         }
     }
 
-    fun runMarathon(){
-        log.info { "Run marathon launch with environment $environments" }
+    fun runMarathon(group: String) {
+        val envsToPrint = environments.filter { !it.key.contains("key", ignoreCase = true) }
+        log.info { "Run marathon launch with environment $envsToPrint" }
         val isSuccess = MarathonTestRunCommand(
             deviceAmount = deviceAmount,
-            api = api,
+            groupId = group,
             isAllure = allure,
             marathonConfigFilePath = marathonConfigFilePath,
             adbPortVariable = marathonAdbPortVariable,

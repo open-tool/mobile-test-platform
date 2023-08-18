@@ -13,7 +13,7 @@ import java.util.*
 class TestContainersDeviceProvider : DeviceProvider {
     override fun createDevice(deviceInfo: DeviceInfo): FarmDevice {
         log.info { "Start device creation $deviceInfo"}
-        val image = AndroidImage.get(deviceInfo.api)
+        val image = AndroidImage.get(deviceInfo.groupId)
         val container = GenericContainer<Nothing>(DockerImageName.parse(image)).apply {
             withCreateContainerCmdModifier { cmd ->
                 cmd.hostConfig?.withDevices(Device("rwm", "/dev/kvm", "/dev/kvm"))

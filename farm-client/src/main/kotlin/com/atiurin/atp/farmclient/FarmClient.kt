@@ -26,9 +26,9 @@ class FarmClient(private val config: FarmClientConfig) {
 
     fun acquire(
         amount: Int = 1,
-        api: Int,
+        groupId: String,
     ): List<Device> {
-        val body = execute(deviceService.acquire(amount, api, config.userAgent)).body()
+        val body = execute(deviceService.acquire(amount, groupId, config.userAgent)).body()
         return if (body?.devices == null || body.devices.isEmpty()) {
             throw FarmServerException("Couldn't acquire devices from farm, reason: ${body?.message}")
         } else {

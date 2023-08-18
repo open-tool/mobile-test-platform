@@ -38,4 +38,7 @@ vendorConfiguration:
   waitForDevicesTimeoutMillis: 60000
   allureConfiguration:
     enabled: true
+  adbServers:
+  - host: localhost
+    port: ${ADB_SERVER_PORT}
 deviceInitializationTimeoutMillis: 180000

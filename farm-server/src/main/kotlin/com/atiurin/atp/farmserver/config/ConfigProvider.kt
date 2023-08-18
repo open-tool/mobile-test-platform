@@ -14,8 +14,7 @@ object ConfigProvider {
 }
 data class Config(
     var maxDevicesAmount: Int = 0,
-    var keepAliveDevicesAmount: Int = 0,
-    var defaultApi: Int = 0,
+    var keepAliveDevicesMap: Map<String, Int> = mutableMapOf(),
     var deviceBusyTimeoutSec: Long = 30 * 60,
     var isMock: Boolean = false
 )

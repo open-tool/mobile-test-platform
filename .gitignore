@@ -280,3 +280,4 @@ sample/ios-app/Marathondevices
 apks/
 *.apk
 data/
+marathon-report/

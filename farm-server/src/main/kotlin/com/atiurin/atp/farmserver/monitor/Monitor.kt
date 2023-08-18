@@ -3,27 +3,31 @@ package com.atiurin.atp.farmserver.monitor
 import com.atiurin.atp.farmserver.config.ConfigProvider
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.pool.DevicePoolProvider
+import com.atiurin.atp.farmserver.pool.FarmPoolDevice
 import kotlinx.coroutines.*
 import java.time.Instant
 
 suspend fun monitorDevicePool() {
-    log.info {"Launch monitorDevicePool" }
+    log.info { "Launch monitorDevicePool" }
     while (true) {
-        val keepAliveDeviceAmount = ConfigProvider.get().keepAliveDevicesAmount
+        val keepAliveDevices = ConfigProvider.get().keepAliveDevicesMap
         val devicePool = DevicePoolProvider.devicePool
-        val launchedDevicesAmount = devicePool.all().size
-        if (launchedDevicesAmount < keepAliveDeviceAmount) {
-            devicePool.create(
-                keepAliveDeviceAmount - launchedDevicesAmount,
-                ConfigProvider.get().defaultApi
-            )
+        val launchedDevices: List<FarmPoolDevice> = devicePool.all()
+        keepAliveDevices.entries.forEach {
+            val groupId = it.key
+            val amount = it.value
+            val aliveDevicesAmount =
+                launchedDevices.count { farmPoolDevice -> farmPoolDevice.device.deviceInfo.groupId == groupId }
+            if (aliveDevicesAmount < amount) {
+                devicePool.create(amount - aliveDevicesAmount, groupId)
+            }
         }
         delay(2000)
     }
 }
 
 suspend fun monitorBusyDevices() {
-    log.info {"Launch monitorBusyDevices" }
+    log.info { "Launch monitorBusyDevices" }
     while (true) {
         val timeout = ConfigProvider.get().deviceBusyTimeoutSec
         val devicePool = DevicePoolProvider.devicePool

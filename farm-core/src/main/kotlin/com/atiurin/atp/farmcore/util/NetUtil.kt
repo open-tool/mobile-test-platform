@@ -1,4 +1,4 @@
-package com.atiurin.atp.farmcliclient.util
+package com.atiurin.atp.farmcore.util
 
 import java.net.ServerSocket
 

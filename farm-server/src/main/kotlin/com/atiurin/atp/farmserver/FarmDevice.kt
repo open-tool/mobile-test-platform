@@ -1,7 +1,6 @@
 package com.atiurin.atp.farmserver
 
 import com.atiurin.atp.farmcore.models.Device
-import org.springframework.data.relational.core.mapping.Table
 import org.testcontainers.containers.GenericContainer
 
 data class FarmDevice(
@@ -14,7 +13,7 @@ data class FarmDevice(
 fun FarmDevice.toDevice() = Device(
     id = this.id,
     name = this.deviceInfo.name,
-    apiLevel = this.deviceInfo.api,
+    groupId = this.deviceInfo.groupId,
     dockerImage = this.containerInfo.dockerImage,
     ip = this.containerInfo.ip,
     adbConnectPort = this.containerInfo.adbPort,
@@ -22,7 +21,7 @@ fun FarmDevice.toDevice() = Device(
 
 data class DeviceInfo(
     val name: String,
-    val api: Int
+    val groupId: String
 )
 
 data class ContainerInfo(

@@ -21,23 +21,30 @@ import org.springframework.boot.runApplication
 @SpringBootApplication
 class FarmApplication : CliktCommand() {
     val maxAmount by option("-m", "--max_amount").int().required()
-    val keepAliveAmount by option("-ka", "--keep_alive_amount").int().required()
-    val defaultApiValue by option("-da", "--default_api").int().required()
+    val keepAliveDevices: Map<String, String> by option("-kad", "--keep_alive_devices").associate()
     val deviceBusyTimeoutInSec by option("-dbt", "--device_busy_timeout").long().required()
     val images: Map<String, String> by option("-i", "--img").associate()
     val mockDevice by option("-md", "--mock_device").flag()
+
 
     override fun run() {
         val app = runApplication<FarmApplication>()
         app.addApplicationListener { LoggingApplicationListener() }
         log.info {
-            "Farm server is started with params: maxAmount = $maxAmount, keepAliveAmount = $keepAliveAmount, " +
-                    "defaultApiValue = $defaultApiValue, deviceBusyTimeoutInSec = $deviceBusyTimeoutInSec, images = $images, mock_device = $mockDevice"
+            "Farm server is started with params: maxAmount = $maxAmount, keepAliveDevices = $keepAliveDevices, " +
+                    " deviceBusyTimeoutInSec = $deviceBusyTimeoutInSec, images = $images, mock_device = $mockDevice"
         }
+        val kadm = runCatching {
+            val m = keepAliveDevices.entries.map { e ->
+                e.key to e.value.toInt()
+            }
+            m
+        } .onFailure {
+            throw RuntimeException("Invalid keep_alive_devices value. It should be 'String[group_id]=Int[amount_of_devices]'.")
+        }.getOrThrow().toMap()
         ConfigProvider.set {
             maxDevicesAmount = maxAmount
-            keepAliveDevicesAmount = keepAliveAmount
-            defaultApi = defaultApiValue
+            keepAliveDevicesMap = kadm
             deviceBusyTimeoutSec = deviceBusyTimeoutInSec
             isMock = mockDevice
         }

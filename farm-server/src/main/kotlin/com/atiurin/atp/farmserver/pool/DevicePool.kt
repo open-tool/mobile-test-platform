@@ -5,7 +5,6 @@ import com.atiurin.atp.farmserver.FarmDevice
 import com.atiurin.atp.farmserver.config.ConfigProvider
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.provider.DeviceProvider
-import com.atiurin.atp.farmserver.provider.DeviceProviderContainer
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import java.lang.RuntimeException
@@ -44,30 +43,30 @@ abstract class DevicePool {
         }
     }
 
-    fun create(amount: Int = 1, api: Int) {
-        log.info { "Create $amount new devices with api $api" }
+    fun create(amount: Int = 1, groupId: String) {
+        log.info { "Create $amount new devices for group $groupId" }
         synchronized(devices) {
             repeat(amount) {
                 val newDevice = deviceProvider.createDevice(
-                    DeviceInfo("AutoLaunched api $api", api)
+                    DeviceInfo("AutoLaunched group '$groupId'", groupId)
                 )
                 devices.add(FarmPoolDevice(newDevice))
             }
         }
     }
 
-    fun acquire(amount: Int = 1, api: Int, userAgent: String): List<FarmDevice> {
+    fun acquire(amount: Int = 1, groupId: String, userAgent: String): List<FarmDevice> {
         synchronized(devices) {
-            val availableDevices = getAvailableDevices(api)
+            val availableDevices = getAvailableDevices(groupId)
             val deviceToBeAcquiredAmount = if (availableDevices.size < amount) {
-                tryToCreateRequiredDevices(amount, availableDevices.size, api)
-                getAvailableDevices(api).size
+                tryToCreateRequiredDevices(amount, availableDevices.size, groupId)
+                getAvailableDevices(groupId).size
             } else amount
 
             val acquiredDevices = mutableListOf<FarmPoolDevice>()
             for (i in 1..deviceToBeAcquiredAmount) {
-                if (getAvailableDevices(api).isNotEmpty()) {
-                    val device = getAvailableDevices(api).random()
+                if (getAvailableDevices(groupId).isNotEmpty()) {
+                    val device = getAvailableDevices(groupId).random()
                     device.apply {
                         this.userAgent = userAgent
                         this.isBusy = true
@@ -85,7 +84,7 @@ abstract class DevicePool {
     /**
      * Return amount of started devices
      */
-    private fun tryToCreateRequiredDevices(requestedAmount: Int, availableAmount: Int, api: Int): Int {
+    private fun tryToCreateRequiredDevices(requestedAmount: Int, availableAmount: Int, groupId: String): Int {
         if (devices.size >= ConfigProvider.get().maxDevicesAmount) {
             throw RuntimeException("Couldn't provide device now, farm runs to much devices (${devices.size}). Try again later")
         }
@@ -94,12 +93,12 @@ abstract class DevicePool {
         val runAmount = if (requiredToRun > availableToRun) availableToRun else requiredToRun
         log.info { "tryToCreateRequiredDevices: availableToRun = $availableToRun, requiredToRun = $requiredToRun, runAmount = $runAmount" }
 
-        create(runAmount, api)
+        create(runAmount, groupId)
         return runAmount
     }
 
-    private fun getAvailableDevices(api: Int) = devices.filter {
-        it.device.deviceInfo.api == api && !it.isBusy && !it.isBlocked
+    private fun getAvailableDevices(groupId: String) = devices.filter {
+        it.device.deviceInfo.groupId == groupId && !it.isBusy && !it.isBlocked
     }
 
     open fun release(deviceId: String) {

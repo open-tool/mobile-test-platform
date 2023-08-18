@@ -3,15 +3,14 @@ package com.atiurin.atp.farmcliclient.commands
 import com.atiurin.atp.farmcliclient.FarmClientProvider
 import com.atiurin.atp.farmcliclient.adb.AdbServer
 import com.atiurin.atp.farmcliclient.adb.AdbServerImpl
-import com.atiurin.atp.farmcliclient.executor.Cli
-import com.atiurin.atp.farmcliclient.util.NetUtil
+import com.atiurin.atp.farmcore.util.NetUtil
 import com.atiurin.atp.farmcore.models.Device
 import org.apache.commons.exec.environment.EnvironmentUtils
 
 
 class AcquireCommand(
     private val deviceAmount: Int,
-    private val api: Int,
+    private val groupId: String,
     private val adbPortVariable: String? = null,
     envs: Map<String, String> = mutableMapOf()
 ) : Command {
@@ -20,7 +19,7 @@ class AcquireCommand(
     private val environments = envs.toMutableMap().apply { this.putAll(EnvironmentUtils.getProcEnvironment()) }
 
     fun requestDevices() {
-        devices.addAll(farmClient.acquire(deviceAmount, api))
+        devices.addAll(farmClient.acquire(deviceAmount, groupId))
         if (devices.isEmpty()) throw RuntimeException("No devices available")
     }
 

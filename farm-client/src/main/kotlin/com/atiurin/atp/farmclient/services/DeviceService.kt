@@ -11,7 +11,7 @@ interface DeviceService {
     @GET("/device/acquire")
     fun acquire(
         @Query("amount") amount: Int,
-        @Query("api") api: Int,
+        @Query("groupId") groupId: String,
         @Query("userAgent") userAgent: String
     ): Call<GetDevicesResponse>
 
@@ -27,7 +27,7 @@ interface DeviceService {
 
     @GET("/device/create")
     fun create(
-        @Query("api") api: Int,
+        @Query("groupId") groupId: String,
         @Query("name") name: String
     ): Call<GetDevicesResponse>
 }
