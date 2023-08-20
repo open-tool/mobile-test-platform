@@ -18,7 +18,7 @@ To launch the server:
 - add `farm-server-folder/bin` folder to $PATH variable
 - run server with command like following
 ```shell
-farm-server --max_amount 3 --keep_alive_amount 2 --default_api 30 --device_busy_timeout 1800 --img 30=us-docker.pkg.dev/android-emulator-268719/images/30-google-x64:30.1.2
+farm-server --max_amount 5 -kad 30=2 --device_busy_timeout 1800 -i 30=us-docker.pkg.dev/android-emulator-268719/images/30-google-x64:30.1.2
 ```
 
 ## farm-cli-client
@@ -35,7 +35,7 @@ To launch the server:
 - add `farm-cli-client-folder/bin` folder to $PATH variable
 - run cli client with command like following
 ```shell
-farm-cli-client --device_amount 1 --api 30 --user_agent nameOfYourProject
+farm-cli-client --device_amount 1 -g 30 --user_agent nameOfYourProject
 ```
 
 In case your farm-server is hosted not on `http://localhost:8080` add `--url farm_server_hostname` to `farm-cli-client` command.
