@@ -12,7 +12,7 @@ class ServerIntegrationTest {
 
     @Test
     fun acquireAndReleaseTest(){
-        val devices = client.acquire(3, 30)
+        val devices = client.acquire(3, "30")
         client.release(deviceIds = devices.map { it.id })
     }
 }

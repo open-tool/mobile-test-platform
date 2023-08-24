@@ -1,28 +1,30 @@
 package com.atiurin.atp.farmserver.provider
 
-import com.atiurin.atp.farmserver.ContainerInfo
-import com.atiurin.atp.farmserver.DeviceInfo
-import com.atiurin.atp.farmserver.FarmDevice
+import com.atiurin.atp.farmserver.config.ConfigProvider
+import com.atiurin.atp.farmserver.config.getPortInRange
+import com.atiurin.atp.farmserver.device.AndroidContainer
+import com.atiurin.atp.farmserver.device.ContainerInfo
+import com.atiurin.atp.farmserver.device.DeviceInfo
+import com.atiurin.atp.farmserver.device.FarmDevice
 import com.atiurin.atp.farmserver.images.AndroidImage
 import com.atiurin.atp.farmserver.logging.log
 import com.github.dockerjava.api.model.Device
-import org.testcontainers.containers.GenericContainer
 import org.testcontainers.utility.DockerImageName
-import java.util.*
+import java.util.UUID
 
 class TestContainersDeviceProvider : DeviceProvider {
     override fun createDevice(deviceInfo: DeviceInfo): FarmDevice {
         log.info { "Start device creation $deviceInfo"}
         val image = AndroidImage.get(deviceInfo.groupId)
-        val container = GenericContainer<Nothing>(DockerImageName.parse(image)).apply {
+        val container = AndroidContainer<Nothing>(DockerImageName.parse(image)).apply {
             withCreateContainerCmdModifier { cmd ->
                 cmd.hostConfig?.withDevices(Device("rwm", "/dev/kvm", "/dev/kvm"))
             }
         }
 
         startContainer(container)
-        val adbPort = container.getMappedPort(5555)
-        val gRpcPort = container.getMappedPort(8554)
+        val adbPort = container.getHostAdbPort()
+        val gRpcPort = container.getHostGrpcPort()
         log.info { "ip: ${container.host}, adbPort: $adbPort, gRpcPort: $gRpcPort" }
         return FarmDevice(
             UUID.randomUUID().toString(), deviceInfo,
@@ -42,12 +44,13 @@ class TestContainersDeviceProvider : DeviceProvider {
 
     override fun isDeviceAlive(device: FarmDevice): Boolean = device.container?.isRunning ?: false
 
-    private fun startContainer(container: GenericContainer<Nothing>) {
+    private fun startContainer(container: AndroidContainer<Nothing>) {
         container.apply {
             log.info { "Start container" }
             withPrivilegedMode(true)
-            withExposedPorts(5555)
-            withExposedPorts(8554)
+            container.exposeAdbPort(ConfigProvider.get().getPortInRange())
+            container.exposeGrpcPort(ConfigProvider.get().getPortInRange())
+
             start()
 //            Wait.forHealthcheck()
 

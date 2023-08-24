@@ -19,7 +19,7 @@ java.sourceCompatibility = JavaVersion.VERSION_11
 
 
 application {
-    mainClass.set("com.atiurin.atp.farmserver.FarmApplicationKt")
+    mainClass.set("com.atiurin.atp.farmserver.FarmServerKt")
     applicationName = "farm-server"
     setBuildDir("build/app")
 }

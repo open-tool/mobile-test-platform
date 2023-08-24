@@ -1,7 +1,7 @@
 package com.atiurin.atp.farmserver.provider
 
-import com.atiurin.atp.farmserver.DeviceInfo
-import com.atiurin.atp.farmserver.FarmDevice
+import com.atiurin.atp.farmserver.device.DeviceInfo
+import com.atiurin.atp.farmserver.device.FarmDevice
 
 interface DeviceProvider {
     fun createDevice(info: DeviceInfo): FarmDevice

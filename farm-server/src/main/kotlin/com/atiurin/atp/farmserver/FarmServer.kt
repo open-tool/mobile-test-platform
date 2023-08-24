@@ -19,20 +19,26 @@ import org.springframework.boot.runApplication
 
 
 @SpringBootApplication
-class FarmApplication : CliktCommand() {
+class FarmServer : CliktCommand() {
     val maxAmount by option("-m", "--max_amount").int().required()
     val keepAliveDevices: Map<String, String> by option("-kad", "--keep_alive_devices").associate()
     val deviceBusyTimeoutInSec by option("-dbt", "--device_busy_timeout").long().required()
     val images: Map<String, String> by option("-i", "--img").associate()
     val mockDevice by option("-md", "--mock_device").flag()
+    val startPortParam by option("-sp", "--start_port").int()
+    val endPortParam by option("-ep", "--end_port").int()
 
 
     override fun run() {
-        val app = runApplication<FarmApplication>()
+        val app = runApplication<FarmServer>()
         app.addApplicationListener { LoggingApplicationListener() }
         log.info {
-            "Farm server is started with params: maxAmount = $maxAmount, keepAliveDevices = $keepAliveDevices, " +
-                    " deviceBusyTimeoutInSec = $deviceBusyTimeoutInSec, images = $images, mock_device = $mockDevice"
+            """
+            | Farm server is started with params: max_amount = $maxAmount, keep_alive_devices = $keepAliveDevices,
+            | device_busy_timeout (in seconds) = $deviceBusyTimeoutInSec, images = $images, mock_device = $mockDevice,
+            | start_port = $startPortParam, end_port = $endPortParam
+            """.trimMargin()
+
         }
         val kadm = runCatching {
             val m = keepAliveDevices.entries.map { e ->
@@ -47,6 +53,8 @@ class FarmApplication : CliktCommand() {
             keepAliveDevicesMap = kadm
             deviceBusyTimeoutSec = deviceBusyTimeoutInSec
             isMock = mockDevice
+            startPortParam?.let { this.startPort = it }
+            endPortParam?.let { this.endPort = it }
         }
         AndroidImage.set(images)
         if (ConfigProvider.get().isMock) {
@@ -56,5 +64,5 @@ class FarmApplication : CliktCommand() {
     }
 }
 
-fun main(args: Array<String>) = FarmApplication().main(args)
+fun main(args: Array<String>) = FarmServer().main(args)
 

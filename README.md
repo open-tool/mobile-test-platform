@@ -40,5 +40,10 @@ farm-cli-client --device_amount 1 -g 30 --user_agent nameOfYourProject
 
 In case your farm-server is hosted not on `http://localhost:8080` add `--url farm_server_hostname` to `farm-cli-client` command.
 
+### Roadmap
 
+- Support ranges of host port
+- Runner Dockerfile
+- K8s Support
+- Multi-node infrastructure: master & nodes
 

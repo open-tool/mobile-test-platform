@@ -1,8 +1,8 @@
 package com.atiurin.atp.farmserver.pool
 
 import com.atiurin.atp.farmcore.models.PoolDevice
-import com.atiurin.atp.farmserver.FarmDevice
-import com.atiurin.atp.farmserver.toDevice
+import com.atiurin.atp.farmserver.device.FarmDevice
+import com.atiurin.atp.farmserver.device.toDevice
 
 data class FarmPoolDevice(
     var device: FarmDevice,

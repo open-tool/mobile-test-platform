@@ -20,7 +20,7 @@ class Log() {
     fun error(block: () -> Any?) = println(block())
 }
 
-class CliApp : CliktCommand() {
+class FarmCliClient : CliktCommand() {
     val url: String? by option("-u", "--url")
     val command: Command? by option("-c", "--command").enum<Command>()
     val deviceAmount by option("-da", "--device_amount").int().required()
@@ -73,6 +73,6 @@ class CliApp : CliktCommand() {
     }
 }
 
-fun main(args: Array<String>) = CliApp().main(args)
+fun main(args: Array<String>) = FarmCliClient().main(args)
 
 enum class Command { RUN, ACQUIRE, RELEASE }

@@ -1,7 +1,7 @@
 package com.atiurin.atp.farmserver.pool
 
-import com.atiurin.atp.farmserver.DeviceInfo
-import com.atiurin.atp.farmserver.FarmDevice
+import com.atiurin.atp.farmserver.device.DeviceInfo
+import com.atiurin.atp.farmserver.device.FarmDevice
 import com.atiurin.atp.farmserver.config.ConfigProvider
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.provider.DeviceProvider

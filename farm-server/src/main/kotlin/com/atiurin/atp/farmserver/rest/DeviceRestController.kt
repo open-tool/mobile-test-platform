@@ -4,13 +4,13 @@ import com.atiurin.atp.farmcore.responses.BaseResponse
 import com.atiurin.atp.farmcore.responses.GetDevicesResponse
 import com.atiurin.atp.farmcore.responses.GetPoolDevicesResponse
 import com.atiurin.atp.farmserver.*
-import com.atiurin.atp.farmserver.images.AndroidImage
+import com.atiurin.atp.farmserver.device.DeviceInfo
+import com.atiurin.atp.farmserver.device.toDevice
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.pool.DevicePool
 import com.atiurin.atp.farmserver.pool.DevicePoolProvider
 import com.atiurin.atp.farmserver.pool.toPoolDevice
 import com.atiurin.atp.farmserver.provider.DeviceProvider
-import com.atiurin.atp.farmserver.provider.TestContainersDeviceProvider
 import org.springframework.web.bind.annotation.*
 
 @RestController

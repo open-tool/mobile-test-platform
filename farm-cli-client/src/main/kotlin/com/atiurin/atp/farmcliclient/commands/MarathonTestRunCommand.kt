@@ -41,7 +41,7 @@ class MarathonTestRunCommand(
 
     private fun buildCliCommand(): String {
         val result = StringBuilder()
-        if (isAllure) result.append("./allurectl watch -- ")
+        if (isAllure) result.append("allurectl watch -- ")
         result.append("marathon ")
         marathonConfigFilePath?.let { result.append("-m $marathonConfigFilePath ") }
         log.info { "Cli command = '$result'" }

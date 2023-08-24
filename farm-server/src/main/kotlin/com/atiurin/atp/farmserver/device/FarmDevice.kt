@@ -1,4 +1,4 @@
-package com.atiurin.atp.farmserver
+package com.atiurin.atp.farmserver.device
 
 import com.atiurin.atp.farmcore.models.Device
 import org.testcontainers.containers.GenericContainer
