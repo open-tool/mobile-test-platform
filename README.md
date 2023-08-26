@@ -4,6 +4,10 @@ It provides server to manage mobile devices.
 
 Currently supported only Android emulators in docker container.
 
+Architecture:
+
+![MobileTestPlatform](https://github.com/open-tool/mobile-test-platform/assets/12834123/268114d6-1f0d-4f82-9cb8-b9428dea2853)
+
 ## farm-server
 
 to build server application launch
