@@ -16,6 +16,7 @@ class MarathonTestRunCommand(
     private val isAllure: Boolean = false,
     private val marathonConfigFilePath: String? = null,
     private val adbPortVariable: String? = null,
+    private val marathonCommand: String? = null,
     envs: Map<String, String> = mutableMapOf()
 ) : Command {
     private val farmClient = FarmClientProvider.client
@@ -42,7 +43,7 @@ class MarathonTestRunCommand(
     private fun buildCliCommand(): String {
         val result = StringBuilder()
         if (isAllure) result.append("allurectl watch -- ")
-        result.append("marathon ")
+        marathonCommand?.let { result.append("$it ") } ?: result.append("marathon ")
         marathonConfigFilePath?.let { result.append("-m $marathonConfigFilePath ") }
         log.info { "Cli command = '$result'" }
         return result.toString()

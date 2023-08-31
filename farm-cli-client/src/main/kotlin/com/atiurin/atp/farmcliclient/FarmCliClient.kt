@@ -26,11 +26,12 @@ class FarmCliClient : CliktCommand() {
     val deviceAmount by option("-da", "--device_amount").int().required()
 
     @Deprecated("api option will be deleted soon. Use groupId")
-    val api by option("-a", "--api").required()
+    val api by option("-a", "--api")
     val groupId by option("-g", "--group_id")
     val runCommand by option("-rc", "--run_command")
     val allure by option("-aw", "--allure").flag()
     val marathon by option("-m", "--marathon").flag()
+    val marathonCommand by option("-mcmd", "--marathon_command")
     val marathonConfigFilePath by option("-mc", "--marathon_config")
     val environments: Map<String, String> by option("-e", "--env").associate()
     val marathonAdbPortVariable by option("-mapv", "--marathon_adb_port_variable")
@@ -38,7 +39,7 @@ class FarmCliClient : CliktCommand() {
 
     override fun run() {
         println(allure)
-        val group = groupId ?: api
+        val group = groupId ?: api ?: throw RuntimeException("Specify -g or --group_id option.")
         FarmClientProvider.init(
             FarmClientConfig(
                 farmUrl = url ?: "http://localhost:8080",
@@ -63,6 +64,7 @@ class FarmCliClient : CliktCommand() {
             isAllure = allure,
             marathonConfigFilePath = marathonConfigFilePath,
             adbPortVariable = marathonAdbPortVariable,
+            marathonCommand = marathonCommand,
             envs = environments
         ).execute()
         if (!isSuccess) exitProcess(1)

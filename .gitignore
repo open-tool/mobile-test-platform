@@ -281,3 +281,4 @@ apks/
 *.apk
 data/
 marathon-report/
+local.properties
