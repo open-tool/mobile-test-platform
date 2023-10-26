@@ -20,6 +20,11 @@ abstract class DevicePool {
 
     fun all() = devices.toList()
 
+    fun count(predicate: (FarmPoolDevice) -> Boolean) =
+        synchronized(devices){
+            return@synchronized devices.count { predicate(it) }
+        }
+
     fun remove(deviceId: String) {
         log.info { "Remove device $deviceId" }
         synchronized(devices) {

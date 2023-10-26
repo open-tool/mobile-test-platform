@@ -12,17 +12,18 @@ suspend fun monitorDevicePool() {
     while (true) {
         val keepAliveDevices = ConfigProvider.get().keepAliveDevicesMap
         val devicePool = DevicePoolProvider.devicePool
-        val launchedDevices: List<FarmPoolDevice> = devicePool.all()
-        keepAliveDevices.entries.forEach {
-            val groupId = it.key
-            val amount = it.value
-            val aliveDevicesAmount =
-                launchedDevices.count { farmPoolDevice -> farmPoolDevice.device.deviceInfo.groupId == groupId }
-            if (aliveDevicesAmount < amount) {
-                devicePool.create(amount - aliveDevicesAmount, groupId)
+        runCatching {
+            keepAliveDevices.entries.forEach {
+                val groupId = it.key
+                val amount = it.value
+                val aliveDevicesAmount =
+                    devicePool.count { farmPoolDevice -> farmPoolDevice.device.deviceInfo.groupId == groupId }
+                if (aliveDevicesAmount < amount) {
+                    devicePool.create(amount - aliveDevicesAmount, groupId)
+                }
             }
         }
-        delay(2000)
+        delay(5000)
     }
 }
 
@@ -31,16 +32,18 @@ suspend fun monitorBusyDevices() {
     while (true) {
         val timeout = ConfigProvider.get().deviceBusyTimeoutSec
         val devicePool = DevicePoolProvider.devicePool
-        devicePool.all().filter { it.isBusy }.forEach { poolDevice ->
-            val timeoutTime =
-                Instant.ofEpochMilli(poolDevice.busyTimestamp).plusSeconds(timeout)
-            val now = Instant.now()
-            if (now.isAfter(timeoutTime)) {
-                log.info { "Release device ${poolDevice.device.id}. timeout = $timeout, timeoutTime = ${timeoutTime.toEpochMilli()}, now = ${now.toEpochMilli()}, busyTimestamp = ${poolDevice.busyTimestamp}" }
-                devicePool.release(poolDevice.device.id)
+        runCatching {
+            devicePool.all().filter { it.isBusy }.forEach { poolDevice ->
+                val timeoutTime =
+                    Instant.ofEpochMilli(poolDevice.busyTimestamp).plusSeconds(timeout)
+                val now = Instant.now()
+                if (now.isAfter(timeoutTime)) {
+                    log.info { "Release device ${poolDevice.device.id}. timeout = $timeout, timeoutTime = ${timeoutTime.toEpochMilli()}, now = ${now.toEpochMilli()}, busyTimestamp = ${poolDevice.busyTimestamp}" }
+                    devicePool.release(poolDevice.device.id)
+                }
             }
         }
-        delay(2000)
+        delay(5000)
     }
 
 }
