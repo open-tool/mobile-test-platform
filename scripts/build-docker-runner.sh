@@ -1,4 +1,3 @@
-cd ..
 APP_VERSION=$(cat gradle.properties | grep 'appVersion' | cut -d'=' -f2)
 echo "building farm-cli-client $APP_VERSION"
 ./gradlew clean :farm-cli-client:distZip
