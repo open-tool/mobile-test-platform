@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.5.30"
+    kotlin("jvm") version "1.9.20"
 }
 
 group = "org.example"
@@ -10,4 +10,9 @@ repositories {
 }
 dependencies {
     implementation(kotlin("script-runtime"))
+}
+kotlin {
+    java {
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }

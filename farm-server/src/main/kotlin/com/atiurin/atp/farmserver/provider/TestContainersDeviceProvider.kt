@@ -1,5 +1,6 @@
 package com.atiurin.atp.farmserver.provider
 
+import com.atiurin.atp.farmcore.util.NetUtil
 import com.atiurin.atp.farmserver.config.ConfigProvider
 import com.atiurin.atp.farmserver.config.getPortInRange
 import com.atiurin.atp.farmserver.device.AndroidContainer
@@ -14,7 +15,7 @@ import java.util.UUID
 
 class TestContainersDeviceProvider : DeviceProvider {
     override fun createDevice(deviceInfo: DeviceInfo): FarmDevice {
-        log.info { "Start device creation $deviceInfo"}
+        log.info { "Start device creation $deviceInfo" }
         val image = AndroidImage.get(deviceInfo.groupId)
         val container = AndroidContainer<Nothing>(DockerImageName.parse(image)).apply {
             withCreateContainerCmdModifier { cmd ->
@@ -25,12 +26,13 @@ class TestContainersDeviceProvider : DeviceProvider {
         startContainer(container)
         val adbPort = container.getHostAdbPort()
         val gRpcPort = container.getHostGrpcPort()
-        log.info { "ip: ${container.host}, adbPort: $adbPort, gRpcPort: $gRpcPort" }
+        val hostName = NetUtil.getLocalhostName() ?: container.host
+        log.info { "ip: $hostName, adbPort: $adbPort, gRpcPort: $gRpcPort" }
         return FarmDevice(
             UUID.randomUUID().toString(), deviceInfo,
             ContainerInfo(
                 adbPort = adbPort,
-                ip = container.host,
+                ip = hostName,
                 gRpcPort = gRpcPort,
                 dockerImage = image
             ),
@@ -50,34 +52,7 @@ class TestContainersDeviceProvider : DeviceProvider {
             withPrivilegedMode(true)
             container.exposeAdbPort(ConfigProvider.get().getPortInRange())
             container.exposeGrpcPort(ConfigProvider.get().getPortInRange())
-
             start()
-//            Wait.forHealthcheck()
-
-//            val adb = "/android/sdk/platform-tools/adb"
-//            var emulStarted = false
-//            while (!emulStarted) {
-//                val outLines = container.execInContainer(adb, "devices").stdout.reader().readLines()
-//                outLines.forEach { line ->
-//                    if (line.contains("emulator-") and line.contains("device")) emulStarted = true
-//                }
-//            }
-//            println("Emulator started")
-//            var packageServiceStarted = false
-//            while (!packageServiceStarted) {
-//                val outLines = container.execInContainer(
-//                    adb,
-//                    "shell",
-//                    "service",
-//                    "check",
-//                    "package"
-//                ).stdout.reader().readLines()
-//                outLines.forEach { line ->
-//                    if (line == "Service package: found") packageServiceStarted = true
-//                }
-//            }
-//            println("Service package: found")
-//            println("Emulator ${container.containerId} started")
         }
     }
 }

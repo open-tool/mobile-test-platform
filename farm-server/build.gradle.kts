@@ -5,9 +5,9 @@ plugins {
     application
     distribution
     kotlin("jvm")
-    id("org.springframework.boot") version "2.4.5" apply false
-    id("io.spring.dependency-management") version "1.0.11.RELEASE"
-    kotlin("plugin.spring") version "1.6.0"
+    id("org.springframework.boot") version "3.1.5" apply false
+    id("io.spring.dependency-management") version "1.1.3"
+    kotlin("plugin.spring") version "1.9.20"
 }
 
 val appVersion: String by project
@@ -30,7 +30,9 @@ distributions {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    maven("https://repo.spring.io/snapshot")
 }
 
 dependencies {
@@ -44,14 +46,22 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc:2.4.5")
     implementation("org.springframework.boot:spring-boot-starter-web:2.4.5")
+    implementation("org.springframework.boot:spring-boot-starter-actuator:2.4.5")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.github.ajalt.clikt:clikt:3.2.0")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
+    implementation("io.micrometer:micrometer-core:1.11.5")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.11.5")
     runtimeOnly("com.h2database:h2:1.4.200")
+}
+kotlin {
+    java {
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
 }
 tasks.withType<Test> {
