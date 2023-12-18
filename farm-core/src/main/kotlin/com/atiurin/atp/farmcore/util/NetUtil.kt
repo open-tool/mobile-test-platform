@@ -1,5 +1,6 @@
 package com.atiurin.atp.farmcore.util
 
+import java.net.InetAddress
 import java.net.ServerSocket
 
 object NetUtil {
@@ -27,5 +28,11 @@ object NetUtil {
             }
         }
         throw IllegalStateException("No available port in the specified range")
+    }
+
+    fun getLocalhostName(): String? = try {
+        InetAddress.getLocalHost().hostName
+    } catch (e: Exception) {
+        null
     }
 }

@@ -17,7 +17,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.logging.LoggingApplicationListener
 import org.springframework.boot.runApplication
 
-
 @SpringBootApplication
 class FarmServer : CliktCommand() {
     val maxAmount by option("-m", "--max_amount").int().required()
@@ -27,7 +26,6 @@ class FarmServer : CliktCommand() {
     val mockDevice by option("-md", "--mock_device").flag()
     val startPortParam by option("-sp", "--start_port").int()
     val endPortParam by option("-ep", "--end_port").int()
-
 
     override fun run() {
         val app = runApplication<FarmServer>()
