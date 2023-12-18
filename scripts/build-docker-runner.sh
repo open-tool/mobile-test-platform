@@ -9,4 +9,4 @@ else
   IMAGE_NAME="$1"
 fi
 echo "Build docker image"
-docker build --build-arg APP_VERSION=$APP_VERSION -t IMAGE_NAME .
+docker build --build-arg APP_VERSION=$APP_VERSION -t $IMAGE_NAME .

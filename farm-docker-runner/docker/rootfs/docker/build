@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
 [[ $PPID -eq 0 ]] || exit 1
 
 for file in /docker/build.d/*.sh; do
+    echo $file
     . "${file}"
 done
 

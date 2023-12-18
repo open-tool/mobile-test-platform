@@ -1,16 +1,8 @@
-yum -y install \
-    unzip \
+echo "Install packages"
+apk update && apk add --no-cache \
+    openjdk${JAVA_VERSION} \
+    python3 \
     wget \
-    java-11-openjdk \
-#    libX11-devel \
-#    libXtst \
-#    pulseaudio-libs \
-#    libGL \
-#    libXcomposite \
-#    libXcursor \
-#    alsa-plugins-pulseaudio \
-#    pulseaudio-libs-devel \
-#    mesa-libGL \
-#    mesa-libGLw \
-#    xorg-x11-server-Xvfb \
-
+    unzip \
+    libc6-compat
+echo "Packages installed"
