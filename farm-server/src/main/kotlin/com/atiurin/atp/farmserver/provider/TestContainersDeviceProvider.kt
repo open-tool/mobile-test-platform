@@ -1,8 +1,8 @@
 package com.atiurin.atp.farmserver.provider
 
+import com.atiurin.atp.farmcore.models.getPortInRange
 import com.atiurin.atp.farmcore.util.NetUtil
 import com.atiurin.atp.farmserver.config.ConfigProvider
-import com.atiurin.atp.farmserver.config.getPortInRange
 import com.atiurin.atp.farmserver.device.AndroidContainer
 import com.atiurin.atp.farmserver.device.ContainerInfo
 import com.atiurin.atp.farmserver.device.DeviceInfo
@@ -14,6 +14,8 @@ import org.testcontainers.utility.DockerImageName
 import java.util.UUID
 
 class TestContainersDeviceProvider : DeviceProvider {
+    private val containerMap: MutableMap<String, FarmDevice> = mutableMapOf()
+
     override fun createDevice(deviceInfo: DeviceInfo): FarmDevice {
         log.info { "Start device creation $deviceInfo" }
         val image = AndroidImage.get(deviceInfo.groupId)
@@ -28,7 +30,7 @@ class TestContainersDeviceProvider : DeviceProvider {
         val gRpcPort = container.getHostGrpcPort()
         val hostName = NetUtil.getLocalhostName() ?: container.host
         log.info { "ip: $hostName, adbPort: $adbPort, gRpcPort: $gRpcPort" }
-        return FarmDevice(
+        val device = FarmDevice(
             UUID.randomUUID().toString(), deviceInfo,
             ContainerInfo(
                 adbPort = adbPort,
@@ -38,13 +40,20 @@ class TestContainersDeviceProvider : DeviceProvider {
             ),
             container
         )
+        containerMap[container.containerId] = device
+        return device
     }
 
     override fun deleteDevice(device: FarmDevice) {
-        device.container?.stop()
+        device.container?.let {
+            it.stop()
+            containerMap.remove(it.containerId)
+        }
     }
 
     override fun isDeviceAlive(device: FarmDevice): Boolean = device.container?.isRunning ?: false
+
+    override fun getDevices(): List<FarmDevice> = containerMap.values.toList()
 
     private fun startContainer(container: AndroidContainer<Nothing>) {
         container.apply {

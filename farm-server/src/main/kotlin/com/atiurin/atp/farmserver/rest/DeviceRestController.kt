@@ -78,6 +78,15 @@ class DeviceRestController : AbstractRestController() {
         }
     }
 
+    @PostMapping("/release-all")
+    fun releaseAll(@RequestParam groupId: String): BaseResponse {
+        log.info { "release All devices in group '$groupId'" }
+        return processRequest {
+            devicePool.releaseAll(groupId)
+            BaseResponse()
+        }
+    }
+
     @PostMapping("/remove")
     fun remove(@RequestParam deviceId: String): BaseResponse {
         log.info { "remove device request: deviceIds = $deviceId" }

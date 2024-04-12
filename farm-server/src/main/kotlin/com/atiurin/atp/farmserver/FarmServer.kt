@@ -38,17 +38,16 @@ class FarmServer : CliktCommand() {
             """.trimMargin()
 
         }
-        val kadm = runCatching {
-            val m = keepAliveDevices.entries.map { e ->
+        val devicesMap = runCatching {
+            keepAliveDevices.entries.map { e ->
                 e.key to e.value.toInt()
             }
-            m
         } .onFailure {
             throw RuntimeException("Invalid keep_alive_devices value. It should be 'String[group_id]=Int[amount_of_devices]'.")
         }.getOrThrow().toMap()
         ConfigProvider.set {
             maxDevicesAmount = maxAmount
-            keepAliveDevicesMap = kadm
+            keepAliveDevicesMap = devicesMap.toMutableMap()
             deviceBusyTimeoutSec = deviceBusyTimeoutInSec
             isMock = mockDevice
             startPortParam?.let { this.startPort = it }

@@ -1,39 +1,41 @@
 package com.atiurin.atp.farmserver.pool
 
+import com.atiurin.atp.farmserver.config.ConfigProvider
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.FarmDevice
-import com.atiurin.atp.farmserver.config.ConfigProvider
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.provider.DeviceProvider
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import java.lang.RuntimeException
 
 /**
  * Base class to create device pool
  * customize behaviour for different device types
  */
 abstract class DevicePool {
-    abstract val deviceProvider : DeviceProvider
+    abstract val deviceProvider: DeviceProvider
 
     private val devices = mutableListOf<FarmPoolDevice>()
 
-    fun all() = devices.toList()
+    fun all(): List<FarmPoolDevice> {
+        return devices.toList()
+    }
 
     fun count(predicate: (FarmPoolDevice) -> Boolean) =
-        synchronized(devices){
+        synchronized(devices) {
             return@synchronized devices.count { predicate(it) }
         }
 
     fun remove(deviceId: String) {
         log.info { "Remove device $deviceId" }
         synchronized(devices) {
-            GlobalScope.async {
-                devices.find { it.device.id == deviceId }?.let {
+            val device = devices.find { it.device.id == deviceId }
+            devices.removeIf {
+                it.device.id == deviceId
+            }
+            device?.let {
+                GlobalScope.async {
                     deviceProvider.deleteDevice(it.device)
-                }
-                devices.removeIf {
-                    it.device.id == deviceId
                 }
             }
         }
@@ -89,7 +91,11 @@ abstract class DevicePool {
     /**
      * Return amount of started devices
      */
-    private fun tryToCreateRequiredDevices(requestedAmount: Int, availableAmount: Int, groupId: String): Int {
+    private fun tryToCreateRequiredDevices(
+        requestedAmount: Int,
+        availableAmount: Int,
+        groupId: String
+    ): Int {
         if (devices.size >= ConfigProvider.get().maxDevicesAmount) {
             throw RuntimeException("Couldn't provide device now, farm runs to much devices (${devices.size}). Try again later")
         }
@@ -119,7 +125,15 @@ abstract class DevicePool {
         }
     }
 
-    fun release(deviceIds: List<String>) = deviceIds.forEach { release(it) }
+    open fun release(deviceIds: List<String>) = deviceIds.forEach { release(it) }
+
+    open fun releaseAll(groupId: String) {
+        synchronized(devices) {
+            devices.filter { it.device.deviceInfo.groupId == groupId }.forEach { poolDevice ->
+                remove(poolDevice.device.id)
+            }
+        }
+    }
 
     fun block(deviceId: String, desc: String) {
         synchronized(devices) {
@@ -131,7 +145,6 @@ abstract class DevicePool {
             }
         }
     }
-
 
     fun unblock(deviceId: String) {
         synchronized(devices) {

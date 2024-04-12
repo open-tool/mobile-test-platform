@@ -8,6 +8,7 @@ plugins {
     id("org.springframework.boot") version "3.1.5" apply false
     id("io.spring.dependency-management") version "1.1.3"
     kotlin("plugin.spring") version "1.9.20"
+    kotlin("kapt")
 }
 
 val appVersion: String by project
@@ -53,6 +54,13 @@ dependencies {
     implementation("io.micrometer:micrometer-core:1.11.5")
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.5")
     runtimeOnly("com.h2database:h2:1.4.200")
+    testImplementation("org.springframework.boot:spring-boot-starter-test:3.2.4") {
+        exclude(module = "mockito-core")
+    }
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("com.ninja-squad:springmockk:4.0.2")
 }
 kotlin {
     java {

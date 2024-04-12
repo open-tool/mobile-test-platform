@@ -1,5 +1,6 @@
 package com.atiurin.atp.farmserver.config
 
+import com.atiurin.atp.farmcore.models.Config
 import com.atiurin.atp.farmcore.util.NetUtil
 import com.atiurin.atp.farmserver.logging.log
 
@@ -8,19 +9,8 @@ object ConfigProvider {
 
     fun set(block: Config.() -> Unit) {
         config.block()
-        log.info { "Config initialised $config" }
+        log.info { "Config initialised/updated $config" }
     }
 
     fun get() = config
 }
-
-data class Config(
-    var maxDevicesAmount: Int = 0,
-    var keepAliveDevicesMap: Map<String, Int> = mutableMapOf(),
-    var deviceBusyTimeoutSec: Long = 30 * 60,
-    var isMock: Boolean = false,
-    var startPort: Int = 0,
-    var endPort: Int = 65534
-)
-
-fun Config.getPortInRange() = NetUtil.getFreePortInRange(this.startPort, this.endPort)

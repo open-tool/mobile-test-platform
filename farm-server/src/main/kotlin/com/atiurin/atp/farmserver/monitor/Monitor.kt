@@ -21,6 +21,24 @@ suspend fun monitorDevicePool() {
                 if (aliveDevicesAmount < amount) {
                     devicePool.create(amount - aliveDevicesAmount, groupId)
                 }
+                if (aliveDevicesAmount > amount){ // need to kill extra devices
+                    val busyDevicesAmount = devicePool.count { farmPoolDevice ->
+                        farmPoolDevice.device.deviceInfo.groupId == groupId && farmPoolDevice.isBusy
+                    }
+                    val needToRelease = if (busyDevicesAmount < amount){
+                        aliveDevicesAmount - amount
+                    } else {
+                        aliveDevicesAmount - busyDevicesAmount
+                    }
+                    if (needToRelease > 0){
+                        val devicesToRelease = devicePool.acquire(
+                            amount = needToRelease,
+                            groupId = groupId,
+                            userAgent = "DevicePoolReconfiguration"
+                        )
+                        devicePool.release(deviceIds = devicesToRelease.map { device -> device.id })
+                    }
+                }
             }
         }
         delay(5000)
@@ -45,7 +63,6 @@ suspend fun monitorBusyDevices() {
         }
         delay(5000)
     }
-
 }
 
 object Monitor {
