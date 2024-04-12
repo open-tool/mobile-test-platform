@@ -1,24 +1,30 @@
-package com.atiurin.atp.farmserver.provider
+package com.atiurin.atp.farmserver.repository
 
 import com.atiurin.atp.farmcore.models.getPortInRange
-import com.atiurin.atp.farmserver.config.ConfigProvider
+import com.atiurin.atp.farmserver.config.FarmConfiguration
 import com.atiurin.atp.farmserver.device.ContainerInfo
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.FarmDevice
-import com.atiurin.atp.farmserver.images.AndroidImage
+import com.atiurin.atp.farmserver.images.AndroidImagesConfiguration
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Repository
 import java.util.UUID
 
-class MockDeviceProvider : DeviceProvider {
+@Repository
+class MockDeviceRepository @Autowired constructor(
+    private val farmConfig: FarmConfiguration,
+    private val androidImages: AndroidImagesConfiguration
+) : DeviceRepository {
     private val containerMap: MutableMap<String, FarmDevice> = mutableMapOf()
 
     override fun createDevice(deviceInfo: DeviceInfo): FarmDevice {
-        val config = ConfigProvider.get()
+        val config = farmConfig.get()
         runCatching {
-            AndroidImage.get(deviceInfo.groupId)
+            androidImages.get(deviceInfo.groupId)
         }.onFailure {
-            AndroidImage.update(deviceInfo.groupId, "mock_image_${deviceInfo.groupId}")
+            androidImages.update(deviceInfo.groupId, "mock_image_${deviceInfo.groupId}")
         }
-        val dockerImg = AndroidImage.get(deviceInfo.groupId)
+        val dockerImg = androidImages.get(deviceInfo.groupId)
         val device = FarmDevice(
             id = UUID.randomUUID().toString(),
             deviceInfo = DeviceInfo("mock_device_${deviceInfo.groupId}", deviceInfo.groupId),

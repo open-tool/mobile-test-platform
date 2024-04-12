@@ -1,19 +1,24 @@
 package com.atiurin.atp.farmserver.pool
 
-import com.atiurin.atp.farmserver.config.ConfigProvider
+import com.atiurin.atp.farmserver.config.FarmConfiguration
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.FarmDevice
 import com.atiurin.atp.farmserver.logging.log
-import com.atiurin.atp.farmserver.provider.DeviceProvider
+import com.atiurin.atp.farmserver.repository.DeviceRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 /**
  * Base class to create device pool
  * customize behaviour for different device types
  */
+@Component
 abstract class DevicePool {
-    abstract val deviceProvider: DeviceProvider
+    abstract val deviceRepository: DeviceRepository
+    @Autowired
+    lateinit var farmConfig: FarmConfiguration
 
     private val devices = mutableListOf<FarmPoolDevice>()
 
@@ -35,7 +40,7 @@ abstract class DevicePool {
             }
             device?.let {
                 GlobalScope.async {
-                    deviceProvider.deleteDevice(it.device)
+                    deviceRepository.deleteDevice(it.device)
                 }
             }
         }
@@ -54,7 +59,7 @@ abstract class DevicePool {
         log.info { "Create $amount new devices for group $groupId" }
         synchronized(devices) {
             repeat(amount) {
-                val newDevice = deviceProvider.createDevice(
+                val newDevice = deviceRepository.createDevice(
                     DeviceInfo("AutoLaunched group '$groupId'", groupId)
                 )
                 devices.add(FarmPoolDevice(newDevice))
@@ -96,10 +101,10 @@ abstract class DevicePool {
         availableAmount: Int,
         groupId: String
     ): Int {
-        if (devices.size >= ConfigProvider.get().maxDevicesAmount) {
+        if (devices.size >= farmConfig.get().maxDevicesAmount) {
             throw RuntimeException("Couldn't provide device now, farm runs to much devices (${devices.size}). Try again later")
         }
-        val availableToRun = ConfigProvider.get().maxDevicesAmount - devices.size
+        val availableToRun = farmConfig.get().maxDevicesAmount - devices.size
         val requiredToRun = requestedAmount - availableAmount
         val runAmount = if (requiredToRun > availableToRun) availableToRun else requiredToRun
         log.info { "tryToCreateRequiredDevices: availableToRun = $availableToRun, requiredToRun = $requiredToRun, runAmount = $runAmount" }

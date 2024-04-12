@@ -1,11 +1,16 @@
 package com.atiurin.atp.farmserver.config
 
 import com.atiurin.atp.farmcore.models.Config
-import com.atiurin.atp.farmcore.util.NetUtil
 import com.atiurin.atp.farmserver.logging.log
+import org.springframework.context.annotation.Lazy
+import org.springframework.stereotype.Component
+import javax.inject.Singleton
 
-object ConfigProvider {
-    private var config: Config = Config()
+@Singleton
+@Component
+@Lazy
+class FarmConfiguration {
+    private var config: Config = InitialArguments.config.toConfig()
 
     fun set(block: Config.() -> Unit) {
         config.block()

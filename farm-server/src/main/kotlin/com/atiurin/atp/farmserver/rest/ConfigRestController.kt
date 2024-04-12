@@ -2,9 +2,10 @@ package com.atiurin.atp.farmserver.rest
 
 import com.atiurin.atp.farmcore.responses.BaseResponse
 import com.atiurin.atp.farmcore.responses.GetConfigResponse
-import com.atiurin.atp.farmserver.config.ConfigProvider
-import com.atiurin.atp.farmserver.images.AndroidImage
+import com.atiurin.atp.farmserver.config.FarmConfiguration
+import com.atiurin.atp.farmserver.images.AndroidImagesConfiguration
 import com.atiurin.atp.farmserver.logging.log
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,20 +14,23 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/config")
-class ConfigRestController : AbstractRestController() {
+class ConfigRestController  @Autowired constructor(
+    private val farmConfig: FarmConfiguration,
+    private val androidImages: AndroidImagesConfiguration
+): AbstractRestController() {
     @PostMapping("/group-amount")
     fun updateGroupAmount(
         @RequestParam groupId: String,
         @RequestParam amount: Int
     ): BaseResponse {
         return processRequest {
-            val devicesMapToBeConfigure = ConfigProvider.get().keepAliveDevicesMap.toMutableMap()
+            val devicesMapToBeConfigure = farmConfig.get().keepAliveDevicesMap.toMutableMap()
             devicesMapToBeConfigure[groupId] = amount
             val sum = devicesMapToBeConfigure.values.sum()
-            if (sum > ConfigProvider.get().maxDevicesAmount) {
-                throw RuntimeException("Invalid sum off all devices in all groups = $sum, maxDevicesAmount = ${ConfigProvider.get().maxDevicesAmount}")
+            if (sum > farmConfig.get().maxDevicesAmount) {
+                throw RuntimeException("Invalid sum off all devices in all groups = $sum, maxDevicesAmount = ${farmConfig.get().maxDevicesAmount}")
             }
-            ConfigProvider.set {
+            farmConfig.set {
                 keepAliveDevicesMap[groupId] = amount
             }
             BaseResponse()
@@ -38,7 +42,7 @@ class ConfigRestController : AbstractRestController() {
         @RequestParam amount: Int
     ): BaseResponse {
         return processRequest {
-            ConfigProvider.set {
+            farmConfig.set {
                 maxDevicesAmount = amount
             }
             BaseResponse()
@@ -50,7 +54,7 @@ class ConfigRestController : AbstractRestController() {
         @RequestParam("Timeout in seconds") timeout: Long
     ): BaseResponse {
         return processRequest {
-            ConfigProvider.set {
+            farmConfig.set {
                 deviceBusyTimeoutSec = timeout
             }
             BaseResponse()
@@ -63,7 +67,7 @@ class ConfigRestController : AbstractRestController() {
         @RequestParam image: String
     ): BaseResponse {
         return processRequest {
-            AndroidImage.update(groupId, image)
+            androidImages.update(groupId, image)
             BaseResponse()
         }
     }
@@ -72,7 +76,7 @@ class ConfigRestController : AbstractRestController() {
     fun getCurrentConfig(): GetConfigResponse {
         return processRequest {
             log.info { "Get current config" }
-            GetConfigResponse(ConfigProvider.get())
+            GetConfigResponse(farmConfig.get())
         }
     }
 }
