@@ -9,13 +9,13 @@ import javax.inject.Singleton
 @Singleton
 @Component
 @Lazy
-class FarmConfiguration {
-    private var config: Config = InitialArguments.config.toConfig()
+class FarmConfigImpl : FarmConfig {
+    private val config: Config by lazy { InitialArguments.config.toConfig() }
 
-    fun set(block: Config.() -> Unit) {
+    override fun set(block: Config.() -> Unit) {
         config.block()
         log.info { "Config initialised/updated $config" }
     }
 
-    fun get() = config
+    override fun get() = config
 }

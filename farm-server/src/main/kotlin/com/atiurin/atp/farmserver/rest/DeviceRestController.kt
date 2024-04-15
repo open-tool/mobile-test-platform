@@ -4,7 +4,6 @@ import com.atiurin.atp.farmcore.responses.BaseResponse
 import com.atiurin.atp.farmcore.responses.GetDevicesResponse
 import com.atiurin.atp.farmcore.responses.GetPoolDevicesResponse
 import com.atiurin.atp.farmserver.*
-import com.atiurin.atp.farmserver.config.FarmConfiguration
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.toDevice
 import com.atiurin.atp.farmserver.logging.log

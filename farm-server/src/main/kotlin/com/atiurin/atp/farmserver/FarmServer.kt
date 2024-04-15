@@ -11,6 +11,7 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.long
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.logging.LoggingApplicationListener
 import org.springframework.boot.runApplication
@@ -58,11 +59,9 @@ class App: CliktCommand() {
 }
 
 @SpringBootApplication
-class FarmServer(
-    private val monitor: Monitor
-){
+class FarmServer {
     fun run(){
-        monitor.startMonitors()
+        //some use full code
     }
 }
 

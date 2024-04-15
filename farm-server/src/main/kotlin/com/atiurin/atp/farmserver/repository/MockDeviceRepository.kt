@@ -1,7 +1,7 @@
 package com.atiurin.atp.farmserver.repository
 
 import com.atiurin.atp.farmcore.models.getPortInRange
-import com.atiurin.atp.farmserver.config.FarmConfiguration
+import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.device.ContainerInfo
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.FarmDevice
@@ -12,7 +12,7 @@ import java.util.UUID
 
 @Repository
 class MockDeviceRepository @Autowired constructor(
-    private val farmConfig: FarmConfiguration,
+    private val farmConfig: FarmConfig,
     private val androidImages: AndroidImagesConfiguration
 ) : DeviceRepository {
     private val containerMap: MutableMap<String, FarmDevice> = mutableMapOf()

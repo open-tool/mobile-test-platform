@@ -1,6 +1,7 @@
 package com.atiurin.atp.farmserver.pool
 
-import com.atiurin.atp.farmserver.config.FarmConfiguration
+import com.atiurin.atp.farmserver.config.FarmConfig
+import com.atiurin.atp.farmserver.config.FarmConfigImpl
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.FarmDevice
 import com.atiurin.atp.farmserver.logging.log
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Component
 abstract class DevicePool {
     abstract val deviceRepository: DeviceRepository
     @Autowired
-    lateinit var farmConfig: FarmConfiguration
+    lateinit var farmConfig: FarmConfig
 
     private val devices = mutableListOf<FarmPoolDevice>()
 

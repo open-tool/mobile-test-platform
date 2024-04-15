@@ -8,7 +8,9 @@ data class Config(
     var deviceBusyTimeoutSec: Long = 30 * 60,
     var isMock: Boolean = false,
     var startPort: Int = 0,
-    var endPort: Int = 65534
+    var endPort: Int = 65534,
+    var devicePoolMonitorDelay: Long = 5_000L,
+    var busyDevicesMonitorDelay: Long = 5_000L
 )
 
 fun Config.getPortInRange() = NetUtil.getFreePortInRange(this.startPort, this.endPort)

@@ -2,7 +2,8 @@ package com.atiurin.atp.farmserver.rest
 
 import com.atiurin.atp.farmcore.responses.BaseResponse
 import com.atiurin.atp.farmcore.responses.GetConfigResponse
-import com.atiurin.atp.farmserver.config.FarmConfiguration
+import com.atiurin.atp.farmserver.config.FarmConfig
+import com.atiurin.atp.farmserver.config.FarmConfigImpl
 import com.atiurin.atp.farmserver.images.AndroidImagesConfiguration
 import com.atiurin.atp.farmserver.logging.log
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/config")
 class ConfigRestController  @Autowired constructor(
-    private val farmConfig: FarmConfiguration,
+    private val farmConfig: FarmConfig,
     private val androidImages: AndroidImagesConfiguration
 ): AbstractRestController() {
     @PostMapping("/group-amount")

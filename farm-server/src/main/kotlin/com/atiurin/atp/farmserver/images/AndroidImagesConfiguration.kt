@@ -16,7 +16,7 @@ class AndroidImagesConfiguration {
 
     fun set(imagesMap: Map<String, String>){
         imagesMap.forEach { (groupId, image) ->
-            images[groupId] = image
+            images[groupId] = image 
         }
     }
 
