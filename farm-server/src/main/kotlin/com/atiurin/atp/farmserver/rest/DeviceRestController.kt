@@ -8,18 +8,18 @@ import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.toDevice
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.pool.DevicePool
-import com.atiurin.atp.farmserver.pool.DevicePoolProvider
 import com.atiurin.atp.farmserver.pool.toPoolDevice
-import com.atiurin.atp.farmserver.provider.DeviceProvider
+import com.atiurin.atp.farmserver.repository.DeviceRepository
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/device")
-class DeviceRestController : AbstractRestController() {
-    private final val devicePool: DevicePool
-        get() = DevicePoolProvider.devicePool
-    val deviceProvider: DeviceProvider
-        get() = devicePool.deviceProvider
+class DeviceRestController @Autowired constructor(
+    private val devicePool: DevicePool
+) : AbstractRestController() {
+    val deviceRepository: DeviceRepository
+        get() = devicePool.deviceRepository
 
     @GetMapping("/acquire")
     fun acquire(
@@ -41,7 +41,7 @@ class DeviceRestController : AbstractRestController() {
     ): GetDevicesResponse {
         return processRequest {
             log.info { "create device request: groupId = $groupId, name = '$name'" }
-            val device = deviceProvider.createDevice(DeviceInfo(name, groupId))
+            val device = deviceRepository.createDevice(DeviceInfo(name, groupId))
             devicePool.join(device)
             GetDevicesResponse(devices = listOf(device.toDevice()))
         }
@@ -55,7 +55,7 @@ class DeviceRestController : AbstractRestController() {
         //TODO support async device creation
         return processRequest {
             log.info { "create async device request: groupId = $groupId, name = '$name'" }
-            devicePool.join(deviceProvider.createDevice(DeviceInfo(name, groupId)))
+            devicePool.join(deviceRepository.createDevice(DeviceInfo(name, groupId)))
             BaseResponse()
         }
     }
@@ -74,6 +74,15 @@ class DeviceRestController : AbstractRestController() {
         log.info { "release devices request: deviceIds = $deviceIds" }
         return processRequest {
             devicePool.release(deviceIds)
+            BaseResponse()
+        }
+    }
+
+    @PostMapping("/release-all")
+    fun releaseAll(@RequestParam groupId: String): BaseResponse {
+        log.info { "release All devices in group '$groupId'" }
+        return processRequest {
+            devicePool.releaseAll(groupId)
             BaseResponse()
         }
     }

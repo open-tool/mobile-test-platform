@@ -1,10 +1,13 @@
 package com.atiurin.atp.farmserver.pool
 
-import com.atiurin.atp.farmserver.provider.DeviceProvider
-import com.atiurin.atp.farmserver.provider.DeviceProviderContainer
+import com.atiurin.atp.farmserver.repository.DeviceRepository
+import com.atiurin.atp.farmserver.repository.TestContainersDeviceRepository
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
-class TestContainersPool : DevicePool() {
-    override val deviceProvider: DeviceProvider = DeviceProviderContainer.deviceProvider
+@Component
+class TestContainersPool @Autowired constructor(repository: TestContainersDeviceRepository) : DevicePool() {
+    override val deviceRepository: DeviceRepository = repository
 
     override fun release(deviceId: String) {
         remove(deviceId)
