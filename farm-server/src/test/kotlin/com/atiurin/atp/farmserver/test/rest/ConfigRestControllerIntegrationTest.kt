@@ -20,12 +20,6 @@ import org.springframework.test.context.junit4.SpringRunner
 )
 @DirtiesContext
 class ConfigRestControllerIntegrationTest : BaseRestControllerTest() {
-    @Autowired
-    lateinit var configRestController: ConfigRestController
-
-    @Autowired
-    lateinit var deviceRestController: DeviceRestController
-
     @Test
     fun `update keep alive devices amount`() {
         val currentConfig = configRestController.getCurrentConfig().config

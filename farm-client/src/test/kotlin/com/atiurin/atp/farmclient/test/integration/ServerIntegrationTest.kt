@@ -17,14 +17,4 @@ class ServerIntegrationTest {
         val devices = client.acquire(3, "30")
         client.release(deviceIds = devices.map { it.id })
     }
-
-    @Test
-    fun timestamp(){
-        val t = System.currentTimeMillis()
-        val date = Date(1698845104318)
-        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
-        val formattedDate = sdf.format(date)
-
-        println(formattedDate)
-    }
 }

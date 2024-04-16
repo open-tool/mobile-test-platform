@@ -4,7 +4,10 @@ import com.atiurin.atp.farmcore.models.Config
 import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.config.InitialConfig
 import com.atiurin.atp.farmserver.config.toConfig
+import com.atiurin.atp.farmserver.rest.ConfigRestController
+import com.atiurin.atp.farmserver.rest.DeviceRestController
 import org.junit.jupiter.api.BeforeEach
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.server.LocalServerPort
@@ -23,16 +26,18 @@ open class BaseRestControllerTest {
             endPort = 11000
         )
     }
+
     @LocalServerPort
     var appPort: Int = 0
 
     fun endpoint(url: String) = "http://localhost:$appPort/$url"
-
     var client = TestRestTemplate()
 
-    @BeforeEach
-    @DirtiesContext
-    fun setup() {}
+    @Autowired
+    lateinit var configRestController: ConfigRestController
+
+    @Autowired
+    lateinit var deviceRestController: DeviceRestController
 
     @TestConfiguration
     internal class FarmTestConfiguration {

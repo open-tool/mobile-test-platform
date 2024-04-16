@@ -1,14 +1,8 @@
 package com.atiurin.atp.farmserver.test.rest
 
-import com.atiurin.atp.farmserver.config.FarmConfig
-import com.atiurin.atp.farmserver.rest.ConfigRestController
-import com.atiurin.atp.farmserver.rest.DeviceRestController
 import com.atiurin.atp.farmserver.test.util.AssertUtils.awaitTrue
-import org.assertj.core.api.Assertions
-import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringRunner
@@ -20,12 +14,6 @@ import org.springframework.test.context.junit4.SpringRunner
 )
 @DirtiesContext
 class DeviceMonitoringIntegrationTest : BaseRestControllerTest() {
-    @Autowired
-    lateinit var configRestController: ConfigRestController
-
-    @Autowired
-    lateinit var deviceRestController: DeviceRestController
-
     @Test
     fun `update keep alive devices amount increases number of alive devices`() {
         val currentConfig = configRestController.getCurrentConfig().config
@@ -87,6 +75,7 @@ class DeviceMonitoringIntegrationTest : BaseRestControllerTest() {
     }
 
     @Test
+    @DirtiesContext
     fun `monitor removes only free devices if necessary`() {
         val currentConfig = configRestController.getCurrentConfig().config
         val group: String = currentConfig.keepAliveDevicesMap.keys.first()

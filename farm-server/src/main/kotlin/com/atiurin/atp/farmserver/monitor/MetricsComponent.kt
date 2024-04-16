@@ -1,5 +1,6 @@
 package com.atiurin.atp.farmserver.monitor
 
+import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.pool.DevicePool
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
@@ -9,13 +10,41 @@ import org.springframework.stereotype.Component
 @Component
 class MetricsComponent @Autowired constructor(
     private val meterRegistry: MeterRegistry,
-    private val devicePool: DevicePool
+    private val devicePool: DevicePool,
+    private val farmConfig: FarmConfig
 ) {
-    private val usedDevices: Gauge =
-        Gauge.builder("metrics.pool.devices.busy", this) { devicePool.count { it.isBusy }.toDouble() }
-        .register(meterRegistry)
+    init {
+        groupDevices()
+    }
 
-    private val freeDevices: Gauge =
-        Gauge.builder("metrics.pool.devices.free", this) { devicePool.count { !it.isBusy }.toDouble() }
-        .register(meterRegistry)
+    private val usedDevices: Gauge =
+        Gauge.builder("metrics.pool.devices.busy", this) {
+            devicePool.all().count { it.isBusy }.toDouble()
+        }
+            .register(meterRegistry)
+
+    private val totalFreeDevices: Gauge =
+        Gauge.builder("metrics.pool.devices.free", this) {
+            devicePool.all().count { !it.isBusy }.toDouble()
+        }
+            .register(meterRegistry)
+
+    private fun groupDevices(): List<Gauge> {
+        val gauges = mutableListOf<Gauge>()
+        farmConfig.get().keepAliveDevicesMap.forEach { (groupId, _) ->
+            gauges.add(
+                Gauge.builder("metrics.pool.devices.$groupId.free", this) {
+                    devicePool.all().count { it.device.deviceInfo.groupId == groupId && !it.isBusy }
+                        .toDouble()
+                }.register(meterRegistry)
+            )
+            gauges.add(
+                Gauge.builder("metrics.pool.devices.$groupId.busy", this) {
+                    devicePool.all().count { it.device.deviceInfo.groupId == groupId && it.isBusy }
+                        .toDouble()
+                }.register(meterRegistry)
+            )
+        }
+        return gauges
+    }
 }
