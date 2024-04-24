@@ -1,10 +1,8 @@
 package com.atiurin.atp.farmserver.monitor
 
 import com.atiurin.atp.farmserver.config.FarmConfig
-import com.atiurin.atp.farmserver.config.FarmConfigImpl
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.pool.DevicePool
-import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

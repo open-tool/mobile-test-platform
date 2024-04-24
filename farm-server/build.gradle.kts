@@ -5,7 +5,7 @@ plugins {
     application
     distribution
     kotlin("jvm")
-    id("org.springframework.boot") version "3.1.5" apply false
+    id("org.springframework.boot") version "3.2.5" apply false
     id("io.spring.dependency-management") version "1.1.3"
     kotlin("plugin.spring") version "1.9.20"
     kotlin("kapt")
@@ -41,13 +41,13 @@ dependencies {
     implementation(project(":farm-core"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    implementation("org.springdoc:springdoc-openapi-ui:1.5.8")
-    implementation("org.springdoc:springdoc-openapi-kotlin:1.5.8")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
     implementation("org.testcontainers:testcontainers:1.15.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
-    implementation("org.springframework.boot:spring-boot-starter-data-jdbc:3.2.4")
-    implementation("org.springframework.boot:spring-boot-starter-web:3.2.4")
-    implementation("org.springframework.boot:spring-boot-starter-actuator:3.2.4")
+    implementation("org.springframework.boot:spring-boot-starter-data-jdbc:3.2.5")
+    implementation("org.springframework.boot:spring-boot-starter-web:3.2.5")
+    implementation("org.springframework.boot:spring-boot-starter-actuator:3.2.5")
+    implementation("org.springframework.boot:spring-boot-starter-validation:3.2.5")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.github.ajalt.clikt:clikt:3.2.0")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
@@ -55,10 +55,10 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.5")
     implementation ("javax.inject:javax.inject:1")
     runtimeOnly("com.h2database:h2:1.4.200")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:3.2.4") {
+    testImplementation("org.springframework.boot:spring-boot-starter-test:3.2.5") {
         exclude(module = "mockito-core")
     }
-    kapt("org.springframework.boot:spring-boot-configuration-processor:3.2.4")
+    kapt("org.springframework.boot:spring-boot-configuration-processor:3.2.5")
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
     testImplementation("com.ninja-squad:springmockk:4.0.2")
