@@ -9,7 +9,8 @@ data class InitialConfig(
     val isMock: Boolean = false,
     val startPort: Int = 0,
     val endPort: Int = 65534,
-    val imagesMap: Map<String, String> = mapOf()
+    val imagesMap: Map<String, String> = mapOf(),
+    val farmMode: FarmMode = FarmMode.Local
 )
 
 fun InitialConfig.toConfig() = Config(

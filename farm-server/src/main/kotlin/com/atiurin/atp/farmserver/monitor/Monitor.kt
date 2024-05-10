@@ -2,7 +2,7 @@ package com.atiurin.atp.farmserver.monitor
 
 import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.logging.log
-import com.atiurin.atp.farmserver.pool.DevicePool
+import com.atiurin.atp.farmserver.pool.LocalDevicePool
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -16,7 +16,7 @@ import javax.inject.Singleton
 @Component
 class Monitor @Autowired constructor(
     private val farmConfig: FarmConfig,
-    private val devicePool: DevicePool
+    private val devicePool: LocalDevicePool
 ) : MonitorInterface {
     init {
         startMonitors()

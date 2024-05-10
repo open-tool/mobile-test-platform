@@ -1,5 +1,6 @@
 package com.atiurin.atp.farmserver
 
+import com.atiurin.atp.farmserver.config.FarmMode
 import com.atiurin.atp.farmserver.config.InitialArguments
 import com.atiurin.atp.farmserver.config.InitialConfig
 import com.atiurin.atp.farmserver.logging.log
@@ -9,8 +10,10 @@ import com.github.ajalt.clikt.parameters.options.associate
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.long
+import jakarta.annotation.PreDestroy
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.logging.LoggingApplicationListener
@@ -26,6 +29,7 @@ class App: CliktCommand() {
     val mockDevice by option("-md", "--mock_device").flag()
     val startPortParam by option("-sp", "--start_port").int()
     val endPortParam by option("-ep", "--end_port").int()
+    val mode: FarmMode? by option().enum<FarmMode>()
 
     override fun run() {
         log.info {
@@ -61,7 +65,12 @@ class App: CliktCommand() {
 @SpringBootApplication
 class FarmServer {
     fun run(){
-        //some use full code
+        //some useful code
+    }
+
+    @PreDestroy
+    fun onShutdown(){
+        // delete devices from db
     }
 }
 

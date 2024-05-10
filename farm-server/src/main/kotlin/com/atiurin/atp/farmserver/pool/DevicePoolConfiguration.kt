@@ -8,17 +8,17 @@ import org.springframework.stereotype.Component
 @Component
 class DevicePoolConfiguration @Autowired constructor(private val farmConfig: FarmConfig) {
     @Autowired
-    lateinit var mockDevicePool: MockDevicePool
+    lateinit var mockDevicePool: MockLocalDevicePool
 
     @Autowired
-    lateinit var testContainersPool: TestContainersPool
+    lateinit var localTestContainersPool: LocalTestContainersPool
 
     @Bean
-    fun devicePool(): DevicePool {
+    fun devicePool(): LocalDevicePool {
         return if (farmConfig.get().isMock){
             mockDevicePool
         } else {
-            testContainersPool
+            localTestContainersPool
         }
     }
 }

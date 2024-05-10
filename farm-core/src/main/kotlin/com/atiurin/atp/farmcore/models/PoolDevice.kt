@@ -7,5 +7,6 @@ data class PoolDevice (
     val isBlocked: Boolean = false,
     val busyTimestamp: Long = 0L,
     var lastPingTimestamp: Long = 0L,
+    var lastAliveTimestamp: Long = 0L,
     val blockDesc: String? = null
 )

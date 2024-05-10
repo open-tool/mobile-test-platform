@@ -1,7 +1,7 @@
 package com.atiurin.atp.farmserver.monitor
 
 import com.atiurin.atp.farmserver.config.FarmConfig
-import com.atiurin.atp.farmserver.pool.DevicePool
+import com.atiurin.atp.farmserver.pool.LocalDevicePool
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class MetricsComponent @Autowired constructor(
     private val meterRegistry: MeterRegistry,
-    private val devicePool: DevicePool,
+    private val devicePool: LocalDevicePool,
     private val farmConfig: FarmConfig
 ) {
     init {

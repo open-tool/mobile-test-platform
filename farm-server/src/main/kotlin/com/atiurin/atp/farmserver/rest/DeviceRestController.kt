@@ -7,7 +7,7 @@ import com.atiurin.atp.farmserver.*
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.toDevice
 import com.atiurin.atp.farmserver.logging.log
-import com.atiurin.atp.farmserver.pool.DevicePool
+import com.atiurin.atp.farmserver.pool.LocalDevicePool
 import com.atiurin.atp.farmserver.pool.toPoolDevice
 import com.atiurin.atp.farmserver.repository.DeviceRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/device")
 class DeviceRestController @Autowired constructor(
-    private val devicePool: DevicePool
+    private val devicePool: LocalDevicePool
 ) : AbstractRestController() {
     val deviceRepository: DeviceRepository
         get() = devicePool.deviceRepository

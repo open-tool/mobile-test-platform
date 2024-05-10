@@ -10,6 +10,7 @@ data class FarmPoolDevice(
     var isBusy: Boolean = false,
     var busyTimestamp: Long = 0L,
     var lastPingTimestamp: Long = 0L,
+    var lastAliveTimestamp: Long = 0L,
     var isBlocked: Boolean = false,
     var blockDesc : String? = null
 )
@@ -21,6 +22,7 @@ fun FarmPoolDevice.toPoolDevice() = PoolDevice(
     isBlocked = this.isBlocked,
     busyTimestamp = this.busyTimestamp,
     lastPingTimestamp = this.lastPingTimestamp,
+    lastAliveTimestamp = this.lastAliveTimestamp,
     blockDesc = this.blockDesc
 )
 
