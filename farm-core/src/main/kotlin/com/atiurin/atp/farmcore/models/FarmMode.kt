@@ -1,4 +1,4 @@
-package com.atiurin.atp.farmserver.config
+package com.atiurin.atp.farmcore.models
 
 enum class FarmMode {
     Local, Multiple, Cluster

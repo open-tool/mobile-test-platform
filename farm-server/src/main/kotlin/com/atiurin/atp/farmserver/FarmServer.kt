@@ -1,10 +1,11 @@
 package com.atiurin.atp.farmserver
 
-import com.atiurin.atp.farmserver.config.FarmMode
+import com.atiurin.atp.farmcore.models.FarmMode
 import com.atiurin.atp.farmserver.config.InitialArguments
 import com.atiurin.atp.farmserver.config.InitialConfig
 import com.atiurin.atp.farmserver.logging.log
-import com.atiurin.atp.farmserver.monitor.Monitor
+import com.atiurin.atp.farmserver.servers.repository.LocalServerRepository
+import com.atiurin.atp.farmserver.servers.repository.ServerRepository
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.associate
 import com.github.ajalt.clikt.parameters.options.flag
@@ -18,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.logging.LoggingApplicationListener
 import org.springframework.boot.runApplication
+import org.springframework.core.env.Environment
+
 
 fun main(args: Array<String>) = App().main(args)
 
@@ -64,13 +67,16 @@ class App: CliktCommand() {
 
 @SpringBootApplication
 class FarmServer {
+    @Autowired
+    lateinit var localServerRepository: LocalServerRepository
+
     fun run(){
         //some useful code
     }
 
     @PreDestroy
     fun onShutdown(){
-        // delete devices from db
+        localServerRepository.unregister()
     }
 }
 

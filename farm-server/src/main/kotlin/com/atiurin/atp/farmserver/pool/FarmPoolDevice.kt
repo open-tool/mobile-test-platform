@@ -1,5 +1,6 @@
 package com.atiurin.atp.farmserver.pool
 
+import com.atiurin.atp.farmcore.models.DeviceStatus
 import com.atiurin.atp.farmcore.models.PoolDevice
 import com.atiurin.atp.farmserver.device.FarmDevice
 import com.atiurin.atp.farmserver.device.toDevice
@@ -7,22 +8,20 @@ import com.atiurin.atp.farmserver.device.toDevice
 data class FarmPoolDevice(
     var device: FarmDevice,
     var userAgent: String? = null,
-    var isBusy: Boolean = false,
     var busyTimestamp: Long = 0L,
     var lastPingTimestamp: Long = 0L,
-    var lastAliveTimestamp: Long = 0L,
-    var isBlocked: Boolean = false,
-    var blockDesc : String? = null
+    var status: DeviceStatus = DeviceStatus.FREE,
+    var desc : String? = null
 )
+
 
 fun FarmPoolDevice.toPoolDevice() = PoolDevice(
     device = this.device.toDevice(),
     userAgent = this.userAgent,
-    isBusy = this.isBusy,
-    isBlocked = this.isBlocked,
+    status = this.status,
+    state = this.device.state,
     busyTimestamp = this.busyTimestamp,
     lastPingTimestamp = this.lastPingTimestamp,
-    lastAliveTimestamp = this.lastAliveTimestamp,
-    blockDesc = this.blockDesc
+    desc = this.desc
 )
 

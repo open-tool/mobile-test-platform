@@ -1,25 +1,25 @@
 package com.atiurin.atp.farmserver.rest
 
+import com.atiurin.atp.farmcore.models.Device
 import com.atiurin.atp.farmcore.responses.BaseResponse
 import com.atiurin.atp.farmcore.responses.GetDevicesResponse
 import com.atiurin.atp.farmcore.responses.GetPoolDevicesResponse
-import com.atiurin.atp.farmserver.*
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.toDevice
 import com.atiurin.atp.farmserver.logging.log
-import com.atiurin.atp.farmserver.pool.LocalDevicePool
+import com.atiurin.atp.farmserver.pool.CachedDevicePool
 import com.atiurin.atp.farmserver.pool.toPoolDevice
-import com.atiurin.atp.farmserver.repository.DeviceRepository
+import com.atiurin.atp.farmserver.device.DeviceRepository
+import com.atiurin.atp.farmserver.pool.DevicePool
+import com.atiurin.atp.farmserver.pool.FarmPoolDevice
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/device")
 class DeviceRestController @Autowired constructor(
-    private val devicePool: LocalDevicePool
+    private val devicePool: DevicePool
 ) : AbstractRestController() {
-    val deviceRepository: DeviceRepository
-        get() = devicePool.deviceRepository
 
     @GetMapping("/acquire")
     fun acquire(
@@ -29,7 +29,7 @@ class DeviceRestController @Autowired constructor(
     ): GetDevicesResponse {
         return processRequest {
             log.info { "Acquire device request: amount = $amount, groupId = $groupId, userAgent = '$userAgent'" }
-            val devices = devicePool.acquire(amount, groupId, userAgent).map { it.toDevice() }
+            val devices = devicePool.acquire(amount, groupId, userAgent).mapToDevices()
             GetDevicesResponse(devices)
         }
     }
@@ -41,22 +41,8 @@ class DeviceRestController @Autowired constructor(
     ): GetDevicesResponse {
         return processRequest {
             log.info { "create device request: groupId = $groupId, name = '$name'" }
-            val device = deviceRepository.createDevice(DeviceInfo(name, groupId))
-            devicePool.join(device)
-            GetDevicesResponse(devices = listOf(device.toDevice()))
-        }
-    }
-
-    @GetMapping("/createAsync")
-    fun createAsync(
-        @RequestParam groupId: String,
-        @RequestParam name: String
-    ): BaseResponse {
-        //TODO support async device creation
-        return processRequest {
-            log.info { "create async device request: groupId = $groupId, name = '$name'" }
-            devicePool.join(deviceRepository.createDevice(DeviceInfo(name, groupId)))
-            BaseResponse()
+            val devices = devicePool.create(1, DeviceInfo(name, groupId)).mapToDevices()
+            GetDevicesResponse(devices = devices)
         }
     }
 
@@ -96,3 +82,5 @@ class DeviceRestController @Autowired constructor(
         }
     }
 }
+
+fun List<FarmPoolDevice>.mapToDevices(): List<Device> = map { it.device.toDevice() }

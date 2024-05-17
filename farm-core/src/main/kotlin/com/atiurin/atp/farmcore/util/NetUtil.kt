@@ -35,4 +35,6 @@ object NetUtil {
     } catch (e: Exception) {
         null
     }
+
+    fun isLocalServerIp(ip: String): Boolean = ip == getLocalhostName()
 }

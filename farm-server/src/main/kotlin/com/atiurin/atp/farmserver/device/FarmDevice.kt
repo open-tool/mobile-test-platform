@@ -1,10 +1,12 @@
 package com.atiurin.atp.farmserver.device
 
 import com.atiurin.atp.farmcore.models.Device
+import com.atiurin.atp.farmcore.models.DeviceState
 import org.testcontainers.containers.GenericContainer
 
 data class FarmDevice(
     val id: String,
+    var state: DeviceState,
     val deviceInfo: DeviceInfo,
     var containerInfo: ContainerInfo,
     var container: GenericContainer<Nothing>? = null
@@ -17,6 +19,7 @@ fun FarmDevice.toDevice() = Device(
     dockerImage = this.containerInfo.dockerImage,
     ip = this.containerInfo.ip,
     adbConnectPort = this.containerInfo.adbPort,
+    state = this.state
 )
 
 data class DeviceInfo(
@@ -27,7 +30,7 @@ data class DeviceInfo(
 data class ContainerInfo(
     val ip: String,
     val adbPort: Int,
-    val gRpcPort: Int,
+    val gRpcPort: Int?,
     val dockerImage: String
 )
 

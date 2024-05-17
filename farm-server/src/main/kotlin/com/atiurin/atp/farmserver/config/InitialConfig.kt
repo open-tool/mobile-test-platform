@@ -1,6 +1,7 @@
 package com.atiurin.atp.farmserver.config
 
 import com.atiurin.atp.farmcore.models.Config
+import com.atiurin.atp.farmcore.models.FarmMode
 
 data class InitialConfig(
     val maxDevicesAmount: Int = 0,
@@ -19,6 +20,7 @@ fun InitialConfig.toConfig() = Config(
     deviceBusyTimeoutSec = this.deviceBusyTimeoutSec,
     isMock = this.isMock,
     startPort = this.startPort,
-    endPort = this.endPort
+    endPort = this.endPort,
+    farmMode = this.farmMode
 )
 
