@@ -1,19 +1,15 @@
 package com.atiurin.atp.farmcore.models
 
-enum class DeviceState(val intValue: Int) {
-    NEED_CREATE(0),
-    CREATING(1),
-    READY(2),
-    NEED_REMOVE(3),
-    REMOVING(4);
+import java.util.Locale
 
-    companion object {
-        private val map = DeviceState.entries.associateBy(DeviceState::intValue)
-
-        fun fromInt(intValue: Int) = map[intValue] ?: NEED_CREATE
-    }
-
+enum class DeviceState {
+    NEED_CREATE,
+    CREATING,
+    READY,
+    NEED_REMOVE,
+    REMOVING;
 }
+fun DeviceState.lowercaseName() = this.name.lowercase(Locale.getDefault())
 
 fun DeviceState.isAlive(): Boolean {
     return this != DeviceState.NEED_REMOVE && this != DeviceState.REMOVING

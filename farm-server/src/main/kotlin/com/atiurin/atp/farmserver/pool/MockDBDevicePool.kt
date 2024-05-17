@@ -1,6 +1,5 @@
 package com.atiurin.atp.farmserver.pool
 
-import com.atiurin.atp.farmserver.db.DataSource
 import com.atiurin.atp.farmserver.device.DeviceRepository
 import com.atiurin.atp.farmserver.device.MockDeviceRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,8 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class MockDBDevicePool @Autowired private constructor(
     @Lazy repository: MockDeviceRepository,
-    @Lazy dataSource: DataSource
-) : DBDevicePool(dataSource) {
+) : DBDevicePool() {
     override val deviceRepository: DeviceRepository = repository
 
     override fun release(deviceId: String) {

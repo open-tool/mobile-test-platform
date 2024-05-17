@@ -1,14 +1,10 @@
 package com.atiurin.atp.farmcore.models
 
-enum class DeviceStatus(val intValue: Int) {
-    FREE(0),
-    BUSY(1),
-    BLOCKED(2);
+import java.util.Locale
 
-    companion object {
-        private val map = DeviceStatus.entries.associateBy(DeviceStatus::intValue)
-
-        fun fromInt(intValue: Int) = map[intValue] ?: FREE
-    }
-
+enum class DeviceStatus {
+    FREE,
+    BUSY,
+    BLOCKED;
 }
+fun DeviceStatus.lowercaseName() = this.name.lowercase(Locale.getDefault())

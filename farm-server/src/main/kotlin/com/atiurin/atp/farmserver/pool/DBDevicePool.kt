@@ -2,8 +2,8 @@ package com.atiurin.atp.farmserver.pool
 
 import com.atiurin.atp.farmcore.models.DeviceState
 import com.atiurin.atp.farmcore.models.DeviceStatus
+import com.atiurin.atp.farmcore.models.lowercaseName
 import com.atiurin.atp.farmserver.config.FarmConfig
-import com.atiurin.atp.farmserver.db.DataSource
 import com.atiurin.atp.farmserver.db.Devices
 import com.atiurin.atp.farmserver.device.ContainerInfo
 import com.atiurin.atp.farmserver.device.DeviceInfo
@@ -13,7 +13,6 @@ import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.servers.repository.LocalServerRepository
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
@@ -25,12 +24,10 @@ import org.jetbrains.exposed.sql.upsert
 import org.jetbrains.exposed.sql.vendors.ForUpdateOption
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Instant
+import java.util.Locale
 
-abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
+abstract class DBDevicePool : AbstractDevicePool() {
     abstract val deviceRepository: DeviceRepository
-    private val database: Database by lazy {
-        dataSource.db ?: throw IllegalStateException("Database is not initialized")
-    }
 
     @Autowired
     lateinit var localServerRepository: LocalServerRepository
@@ -39,12 +36,14 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
     lateinit var farmConfig: FarmConfig
 
     private val totalServerDevices: Int
-        get() = Devices.selectAll().where {
-            Devices.ip eq localServerRepository.ip
-        }.count().toInt()
+        get() = executeTransaction {
+            Devices.selectAll().where {
+                Devices.ip eq localServerRepository.ip
+            }.count().toInt()
+        }
 
-    override fun all(): List<FarmPoolDevice> {
-        return Devices.selectAll().mapToFarmPoolDevice()
+    override fun all(): List<FarmPoolDevice> = executeTransaction {
+        Devices.selectAll().mapToFarmPoolDevice()
     }
 
     override fun count(predicate: (FarmPoolDevice) -> Boolean) =
@@ -54,20 +53,22 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
     override fun remove(deviceId: String) {
         log.info { "Remove device $deviceId" }
         val localDevice = deviceRepository.getDevices().find { it.id == deviceId }
-        if (localDevice != null) {
-            Devices.deleteWhere {
-                uid eq deviceId
-            }
-            GlobalScope.async {
-                deviceRepository.deleteDevice(deviceId)
-            }
-            return
-        } else {
-            Devices.update({
-                Devices.uid eq deviceId
-            }) {
-                it[state] = DeviceState.NEED_REMOVE.intValue
-                it[desc] = "Device is planned to be deleted"
+        executeTransaction {
+            if (localDevice != null) {
+                Devices.deleteWhere {
+                    uid eq deviceId
+                }
+                GlobalScope.async {
+                    deviceRepository.deleteDevice(deviceId)
+                }
+                return@executeTransaction
+            } else {
+                Devices.update({
+                    Devices.uid eq deviceId
+                }) {
+                    it[state] = DeviceState.NEED_REMOVE.lowercaseName()
+                    it[desc] = "Device is planned to be deleted"
+                }
             }
         }
     }
@@ -78,8 +79,8 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
                 Devices.groupId eq groupId
             }.forUpdate(ForUpdateOption.ForUpdate).forEach { result ->
                 Devices.update({ Devices.uid eq result[Devices.uid] }) {
-                    it[status] = DeviceStatus.BLOCKED.intValue
-                    it[state] = DeviceState.NEED_REMOVE.intValue
+                    it[status] = DeviceStatus.BLOCKED.lowercaseName()
+                    it[state] = DeviceState.NEED_REMOVE.lowercaseName()
                     it[desc] = "Device is planned to be deleted as part of group $groupId deletion"
                 }
             }
@@ -91,11 +92,11 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
         val deviceIdsToRemove = mutableListOf<String>()
         executeTransaction {
             Devices.selectAll().where {
-                Devices.state eq state.intValue and (Devices.ip eq localServerRepository.ip)
+                Devices.state eq state.lowercaseName() and (Devices.ip eq localServerRepository.ip)
             }.forUpdate(ForUpdateOption.ForUpdate).forEach { row ->
                 deviceIdsToRemove.add(row[Devices.uid])
                 Devices.update({ Devices.uid eq row[Devices.uid] }) {
-                    it[Devices.state] = DeviceState.REMOVING.intValue
+                    it[Devices.state] = DeviceState.REMOVING.lowercaseName()
                 }
             }
         }
@@ -104,25 +105,28 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
         }
     }
 
-    fun insertOrUpdateDeviceInDB(farmPoolDevice: FarmPoolDevice) {
-        Devices.upsert(Devices.uid) {
-            it[uid] = farmPoolDevice.device.id
-            it[name] = farmPoolDevice.device.deviceInfo.name
-            it[groupId] = farmPoolDevice.device.deviceInfo.groupId
-            it[ip] = farmPoolDevice.device.containerInfo.ip
-            it[adbPort] = farmPoolDevice.device.containerInfo.adbPort
-            it[grpcPort] = farmPoolDevice.device.containerInfo.gRpcPort
-            it[dockerImage] = farmPoolDevice.device.containerInfo.dockerImage
-            it[state] = farmPoolDevice.device.state.intValue
-            it[status] = farmPoolDevice.status.intValue
-            it[desc] = farmPoolDevice.desc
-            it[userAgent] = farmPoolDevice.userAgent
-            it[busyTimestamp] = farmPoolDevice.busyTimestamp
-            it[lastPingTimestamp] = farmPoolDevice.lastPingTimestamp
+    private fun insertOrUpdateDeviceInDB(farmPoolDevice: FarmPoolDevice) {
+        executeTransaction {
+            Devices.upsert(Devices.uid) {
+                it[uid] = farmPoolDevice.device.id
+                it[name] = farmPoolDevice.device.deviceInfo.name
+                it[groupId] = farmPoolDevice.device.deviceInfo.groupId
+                it[ip] = farmPoolDevice.device.containerInfo.ip
+                it[adbPort] = farmPoolDevice.device.containerInfo.adbPort
+                it[grpcPort] = farmPoolDevice.device.containerInfo.gRpcPort
+                it[dockerImage] = farmPoolDevice.device.containerInfo.dockerImage
+                it[state] = farmPoolDevice.device.state.lowercaseName()
+                it[status] = farmPoolDevice.status.lowercaseName()
+                it[desc] = farmPoolDevice.desc
+                it[userAgent] = farmPoolDevice.userAgent
+                it[busyTimestamp] = farmPoolDevice.busyTimestampSec
+                it[lastPingTimestamp] = farmPoolDevice.lastPingTimestampSec
+            }
         }
+
     }
 
-    override fun create(amount: Int, deviceInfo: DeviceInfo): List<FarmPoolDevice> {
+    override fun create(amount: Int, deviceInfo: DeviceInfo, status: DeviceStatus): List<FarmPoolDevice> {
         log.info { "Create $amount new devices for group $deviceInfo.groupId" }
         val newDevices = mutableListOf<FarmPoolDevice>()
         repeat(amount) {
@@ -134,7 +138,9 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
                 insertOrUpdateDeviceInDB(
                     farmPoolDevice.copy(
                         device = device,
-                        status = DeviceStatus.BUSY
+                        status = status,
+                        busyTimestampSec = if (status == DeviceStatus.BUSY) Instant.now().epochSecond else 0,
+                        desc = ""
                     )
                 )
             }
@@ -146,11 +152,11 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
         val amount = farmConfig.get().maxDevicesAmount - totalServerDevices
         val devices = executeTransaction {
             Devices.selectAll().where {
-                Devices.state eq DeviceState.NEED_CREATE.intValue
+                Devices.state eq DeviceState.NEED_CREATE.lowercaseName()
             }.limit(amount).forUpdate(ForUpdateOption.ForUpdate).mapToFarmPoolDevice().apply {
                 forEach { creatingDevice ->
                     Devices.update({Devices.uid eq creatingDevice.device.id }) {
-                        it[state] = DeviceState.CREATING.intValue
+                        it[state] = DeviceState.CREATING.lowercaseName()
                     }
                 }
             }
@@ -184,7 +190,7 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
             val idsForUpdate = deviceToBeAcquired.map { it.device.id }
             Devices.update({ Devices.uid inList idsForUpdate }) {
                 it[Devices.userAgent] = userAgent
-                it[status] = DeviceStatus.BUSY.intValue
+                it[status] = DeviceStatus.BUSY.lowercaseName()
                 it[busyTimestamp] = Instant.now().toEpochMilli()
             }
             deviceToBeAcquired
@@ -209,7 +215,7 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
         val requiredToRun = requestedAmount - availableAmount
         val runAmount = if (requiredToRun > availableToRun) availableToRun else requiredToRun
         log.info { "tryToRunLocalDevices: availableToRun = $availableToRun, requiredToRun = $requiredToRun, runAmount = $runAmount" }
-        return create(runAmount, DeviceInfo("AutoLaunched $groupId",groupId))
+        return create(runAmount, DeviceInfo("AutoLaunched $groupId",groupId), DeviceStatus.BUSY)
     }
 
     private fun addNeedToCreateDevices(amount: Int, groupId: String, userAgent: String): List<FarmPoolDevice> {
@@ -237,8 +243,8 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
     ): List<FarmPoolDevice> {
         return Devices.selectAll().where {
             (Devices.groupId eq groupId)
-                .and(Devices.status eq DeviceStatus.FREE.intValue)
-                .and(Devices.state eq DeviceState.READY.intValue)
+                .and(Devices.status eq DeviceStatus.FREE.lowercaseName())
+                .and(Devices.state eq DeviceState.READY.lowercaseName())
         }.limit(limitAmount).forUpdate().mapToFarmPoolDevice()
     }
 
@@ -249,7 +255,7 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
                 .forUpdate(ForUpdateOption.ForUpdate).forEach { result ->
                     Devices.update({ Devices.uid eq result[Devices.uid] }) {
                         it[userAgent] = null
-                        it[status] = DeviceStatus.FREE.intValue
+                        it[status] = DeviceStatus.FREE.lowercaseName()
                         it[busyTimestamp] = 0L
                     }
                 }
@@ -262,7 +268,7 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
                 .forUpdate(ForUpdateOption.ForUpdate).forEach { result ->
                     Devices.update({ Devices.uid eq result[Devices.uid] }) {
                         it[userAgent] = null
-                        it[status] = DeviceStatus.FREE.intValue
+                        it[status] = DeviceStatus.FREE.lowercaseName()
                         it[busyTimestamp] = 0L
                     }
                 }
@@ -275,7 +281,7 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
                 .forUpdate(ForUpdateOption.ForUpdate).forEach { result ->
                     Devices.update({ Devices.uid eq result[Devices.uid] }) {
                         it[userAgent] = null
-                        it[status] = DeviceStatus.FREE.intValue
+                        it[status] = DeviceStatus.FREE.lowercaseName()
                         it[busyTimestamp] = 0L
                     }
                 }
@@ -288,7 +294,7 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
             Devices.selectAll().where { Devices.uid eq deviceId }
                 .forUpdate(ForUpdateOption.ForUpdate).forEach { result ->
                     Devices.update({ Devices.uid eq result[Devices.uid] }) {
-                        it[status] = DeviceStatus.BLOCKED.intValue
+                        it[status] = DeviceStatus.BLOCKED.lowercaseName()
                         it[Devices.desc] = desc
                     }
                 }
@@ -300,7 +306,7 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
             Devices.selectAll().where { Devices.uid eq deviceId }
                 .forUpdate(ForUpdateOption.ForUpdate).forEach { result ->
                     Devices.update({ Devices.uid eq result[Devices.uid] }) {
-                        it[status] = DeviceStatus.FREE.intValue
+                        it[status] = DeviceStatus.FREE.lowercaseName()
                         it[desc] = ""
                     }
                 }
@@ -308,7 +314,7 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
     }
 
     private fun <R> executeTransaction(block: () -> R): R {
-        return transaction(database) {
+        return transaction {
             val result = block()
             commit()
             result
@@ -319,7 +325,7 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
         return this.map {
             val farmDevice = FarmDevice(
                 id = it[Devices.uid],
-                state = DeviceState.fromInt(it[Devices.state]),
+                state = DeviceState.valueOf(it[Devices.state].uppercase()),
                 deviceInfo = DeviceInfo(
                     name = it[Devices.name],
                     groupId = it[Devices.groupId]
@@ -334,11 +340,11 @@ abstract class DBDevicePool(val dataSource: DataSource) : AbstractDevicePool() {
             )
             FarmPoolDevice(
                 device = farmDevice,
-                status = DeviceStatus.fromInt(it[Devices.status]),
+                status = DeviceStatus.valueOf(it[Devices.status].uppercase()),
                 desc = it[Devices.desc],
                 userAgent = it[Devices.userAgent],
-                busyTimestamp = it[Devices.busyTimestamp],
-                lastPingTimestamp = it[Devices.lastPingTimestamp]
+                busyTimestampSec = it[Devices.busyTimestamp],
+                lastPingTimestampSec = it[Devices.lastPingTimestamp]
             )
         }
     }

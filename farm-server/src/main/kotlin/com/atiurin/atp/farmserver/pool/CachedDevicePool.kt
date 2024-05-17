@@ -49,13 +49,15 @@ abstract class CachedDevicePool : AbstractDevicePool() {
         }
     }
 
-    override fun create(amount: Int, deviceInfo: DeviceInfo): MutableList<FarmPoolDevice> {
+    override fun create(amount: Int, deviceInfo: DeviceInfo, status: DeviceStatus): MutableList<FarmPoolDevice> {
         log.info { "Create $amount new devices $deviceInfo" }
         val newDevices = mutableListOf<FarmPoolDevice>()
         synchronized(devices) {
             repeat(amount) {
                 val farmPoolDevice = initDevice(deviceInfo)
+                farmPoolDevice.status = status
                 newDevices.add(farmPoolDevice)
+                devices.add(farmPoolDevice)
                 GlobalScope.async {
                     val device = deviceRepository.createDevice(farmPoolDevice.device)
                     devices.find { poolDevice ->
@@ -63,7 +65,6 @@ abstract class CachedDevicePool : AbstractDevicePool() {
                     }?.device = device
                 }
             }
-            devices.addAll(newDevices)
         }
         return newDevices
     }
@@ -83,7 +84,7 @@ abstract class CachedDevicePool : AbstractDevicePool() {
             deviceToBeAcquired.forEach {
                 it.userAgent = userAgent
                 it.status = DeviceStatus.BUSY
-                it.busyTimestamp = Instant.now().toEpochMilli()
+                it.busyTimestampSec = Instant.now().epochSecond
             }
             log.info { "Acquired devices by userAgent: $userAgent: $deviceToBeAcquired" }
             return deviceToBeAcquired
@@ -130,7 +131,7 @@ abstract class CachedDevicePool : AbstractDevicePool() {
                 poolDevice.apply {
                     userAgent = null
                     status = DeviceStatus.FREE
-                    busyTimestamp = 0L
+                    busyTimestampSec = 0L
                 }
             }
         }

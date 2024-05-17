@@ -8,6 +8,7 @@ import com.atiurin.atp.farmserver.servers.repository.LocalServerRepository
 import com.atiurin.atp.farmserver.servers.repository.ServerRepository
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.associate
+import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
@@ -32,7 +33,7 @@ class App: CliktCommand() {
     val mockDevice by option("-md", "--mock_device").flag()
     val startPortParam by option("-sp", "--start_port").int()
     val endPortParam by option("-ep", "--end_port").int()
-    val mode: FarmMode? by option().enum<FarmMode>()
+    val mode: FarmMode by option("-fm", "--farm_mode").enum<FarmMode>().default(FarmMode.Multiple)
 
     override fun run() {
         log.info {
@@ -56,7 +57,8 @@ class App: CliktCommand() {
             isMock = mockDevice,
             startPort = startPortParam ?: 0,
             endPort = endPortParam ?: 65534,
-            imagesMap = images
+            imagesMap = images,
+            farmMode = mode
         )
         val app = runApplication<FarmServer>()
         app.addApplicationListener { LoggingApplicationListener() }
@@ -71,12 +73,7 @@ class FarmServer {
     lateinit var localServerRepository: LocalServerRepository
 
     fun run(){
-        //some useful code
-    }
-
-    @PreDestroy
-    fun onShutdown(){
-        localServerRepository.unregister()
+        localServerRepository.register()
     }
 }
 

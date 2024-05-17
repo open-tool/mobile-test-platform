@@ -50,7 +50,7 @@ class Monitor @Autowired constructor(
                                 && farmPoolDevice.device.containerInfo.ip == localServerRepository.ip
                     }
                     if (aliveDevicesAmount < amount) {
-                        devicePool.create(
+                        val devices = devicePool.create(
                             amount - aliveDevicesAmount,
                             DeviceInfo("AutoLaunched $groupId", groupId)
                         )
@@ -88,10 +88,10 @@ class Monitor @Autowired constructor(
             runCatching {
                 devicePool.all().filter { it.status == DeviceStatus.BUSY }.forEach { poolDevice ->
                     val timeoutTime =
-                        Instant.ofEpochMilli(poolDevice.busyTimestamp).plusSeconds(timeout)
+                        Instant.ofEpochSecond(poolDevice.busyTimestampSec).plusSeconds(timeout)
                     val now = Instant.now()
                     if (now.isAfter(timeoutTime)) {
-                        log.info { "Release device ${poolDevice.device.id}. timeout = $timeout, timeoutTime = ${timeoutTime.toEpochMilli()}, now = ${now.toEpochMilli()}, busyTimestamp = ${poolDevice.busyTimestamp}" }
+                        log.info { "Release device ${poolDevice.device.id}. timeout = $timeout, timeoutTime = ${timeoutTime.epochSecond}, now = ${now.epochSecond}, busyTimestamp = ${poolDevice.busyTimestampSec}" }
                         devicePool.release(poolDevice.device.id)
                     }
                 }

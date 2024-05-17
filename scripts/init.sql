@@ -1,0 +1,6 @@
+CREATE USER farm WITH PASSWORD 'farm_pw';
+CREATE DATABASE farm_db;
+GRANT ALL PRIVILEGES ON DATABASE farm_db TO farm;
+\c farm_db
+GRANT ALL ON SCHEMA public TO farm;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO farm;

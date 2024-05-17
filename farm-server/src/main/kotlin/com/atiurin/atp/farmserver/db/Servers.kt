@@ -7,4 +7,8 @@ object Servers : Table() {
     val ip: Column<String> = varchar("ip", 50)
     val port: Column<Int> = integer("port")
     val aliveTimestamp: Column<Long> = long("aliveTimestamp").default(0L)
+
+    init {
+        index(isUnique = true, columns = arrayOf(ip, port))
+    }
 }

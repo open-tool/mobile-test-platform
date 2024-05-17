@@ -15,6 +15,6 @@ object Devices : Table() {
     val desc: Column<String?> = varchar("desc", length = 1000).nullable()
     val busyTimestamp: Column<Long> = long("busyTimestamp").default(0L)
     val lastPingTimestamp: Column<Long> = long("lastPingTimestamp").default(0L)
-    val state: Column<Int> = integer("state").default(0)
-    val status: Column<Int> = integer("status").default(0)
+    val state: Column<String> = varchar("state",50)
+    val status: Column<String> = varchar("status",50)
 }

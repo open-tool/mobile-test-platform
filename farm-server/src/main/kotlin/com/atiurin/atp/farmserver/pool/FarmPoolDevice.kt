@@ -8,8 +8,8 @@ import com.atiurin.atp.farmserver.device.toDevice
 data class FarmPoolDevice(
     var device: FarmDevice,
     var userAgent: String? = null,
-    var busyTimestamp: Long = 0L,
-    var lastPingTimestamp: Long = 0L,
+    var busyTimestampSec: Long = 0L,
+    var lastPingTimestampSec: Long = 0L,
     var status: DeviceStatus = DeviceStatus.FREE,
     var desc : String? = null
 )
@@ -20,8 +20,8 @@ fun FarmPoolDevice.toPoolDevice() = PoolDevice(
     userAgent = this.userAgent,
     status = this.status,
     state = this.device.state,
-    busyTimestamp = this.busyTimestamp,
-    lastPingTimestamp = this.lastPingTimestamp,
+    busyTimestampSec = this.busyTimestampSec,
+    lastPingTimestampSec = this.lastPingTimestampSec,
     desc = this.desc
 )
 
