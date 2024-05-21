@@ -9,7 +9,8 @@ interface DevicePool {
     fun count(predicate: (FarmPoolDevice) -> Boolean): Int
     fun remove(deviceId: String)
     fun removeAll(groupId: String)
-    fun removeDeviceInState(state: DeviceState = DeviceState.NEED_REMOVE)
+    fun removeDeviceInState(amount: Int = -1, state: DeviceState = DeviceState.NEED_REMOVE)
+    fun removeDeviceInStatus(amount: Int = -1, groupId: String, status: DeviceStatus = DeviceStatus.BUSY)
     fun create(amount: Int = 1, deviceInfo: DeviceInfo, status: DeviceStatus = DeviceStatus.FREE): List<FarmPoolDevice>
     fun createNeededDevices(): List<FarmPoolDevice>
     fun acquire(amount: Int = 1, groupId: String, userAgent: String): List<FarmPoolDevice>

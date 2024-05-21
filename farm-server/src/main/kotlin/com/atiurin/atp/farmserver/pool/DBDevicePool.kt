@@ -11,9 +11,12 @@ import com.atiurin.atp.farmserver.device.DeviceRepository
 import com.atiurin.atp.farmserver.device.FarmDevice
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.servers.repository.LocalServerRepository
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.Query
+import org.jetbrains.exposed.sql.SqlExpressionBuilder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -24,7 +27,6 @@ import org.jetbrains.exposed.sql.upsert
 import org.jetbrains.exposed.sql.vendors.ForUpdateOption
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Instant
-import java.util.Locale
 
 abstract class DBDevicePool : AbstractDevicePool() {
     abstract val deviceRepository: DeviceRepository
@@ -46,19 +48,20 @@ abstract class DBDevicePool : AbstractDevicePool() {
         Devices.selectAll().mapToFarmPoolDevice()
     }
 
-    override fun count(predicate: (FarmPoolDevice) -> Boolean) =
-        all().count { predicate(it) }
+    override fun count(predicate: (FarmPoolDevice) -> Boolean) = all().count { predicate(it) }
 
 
     override fun remove(deviceId: String) {
         log.info { "Remove device $deviceId" }
-        val localDevice = deviceRepository.getDevices().find { it.id == deviceId }
         executeTransaction {
-            if (localDevice != null) {
+            val isLocalDevice = Devices.selectAll().where {
+                Devices.uid eq deviceId and (Devices.ip eq localServerRepository.ip)
+            }.count() > 0
+            if (isLocalDevice) {
                 Devices.deleteWhere {
                     uid eq deviceId
                 }
-                GlobalScope.async {
+                CoroutineScope(Dispatchers.Default).launch {
                     deviceRepository.deleteDevice(deviceId)
                 }
                 return@executeTransaction
@@ -88,15 +91,33 @@ abstract class DBDevicePool : AbstractDevicePool() {
     }
 
 
-    override fun removeDeviceInState(state: DeviceState) {
+    override fun removeDeviceInStatus(amount: Int, groupId: String, status: DeviceStatus) {
+        removeDevicesWhere(amount) {
+            Devices.status eq status.lowercaseName() and
+                    (Devices.ip eq localServerRepository.ip) and
+                    (Devices.groupId eq groupId)
+        }
+    }
+
+    override fun removeDeviceInState(amount: Int, state: DeviceState) {
+        removeDevicesWhere(amount) {
+            Devices.state eq state.lowercaseName() and (Devices.ip eq localServerRepository.ip)
+        }
+    }
+
+
+    private fun removeDevicesWhere(amount: Int, predicate: SqlExpressionBuilder.() -> Op<Boolean>) {
         val deviceIdsToRemove = mutableListOf<String>()
         executeTransaction {
-            Devices.selectAll().where {
-                Devices.state eq state.lowercaseName() and (Devices.ip eq localServerRepository.ip)
-            }.forUpdate(ForUpdateOption.ForUpdate).forEach { row ->
+            val selectedDevices =
+                Devices.selectAll().where(predicate).forUpdate(ForUpdateOption.ForUpdate)
+            if (amount > 0) {
+                selectedDevices.limit(amount)
+            }
+            selectedDevices.forEach { row ->
                 deviceIdsToRemove.add(row[Devices.uid])
                 Devices.update({ Devices.uid eq row[Devices.uid] }) {
-                    it[Devices.state] = DeviceState.REMOVING.lowercaseName()
+                    it[state] = DeviceState.REMOVING.lowercaseName()
                 }
             }
         }
@@ -126,14 +147,16 @@ abstract class DBDevicePool : AbstractDevicePool() {
 
     }
 
-    override fun create(amount: Int, deviceInfo: DeviceInfo, status: DeviceStatus): List<FarmPoolDevice> {
+    override fun create(
+        amount: Int, deviceInfo: DeviceInfo, status: DeviceStatus
+    ): List<FarmPoolDevice> {
         log.info { "Create $amount new devices for group $deviceInfo.groupId" }
         val newDevices = mutableListOf<FarmPoolDevice>()
         repeat(amount) {
             val farmPoolDevice = initDevice(deviceInfo)
             insertOrUpdateDeviceInDB(farmPoolDevice)
             newDevices.add(farmPoolDevice)
-            GlobalScope.async {
+            CoroutineScope(Dispatchers.Default).launch {
                 val device = deviceRepository.createDevice(farmPoolDevice.device)
                 insertOrUpdateDeviceInDB(
                     farmPoolDevice.copy(
@@ -155,19 +178,18 @@ abstract class DBDevicePool : AbstractDevicePool() {
                 Devices.state eq DeviceState.NEED_CREATE.lowercaseName()
             }.limit(amount).forUpdate(ForUpdateOption.ForUpdate).mapToFarmPoolDevice().apply {
                 forEach { creatingDevice ->
-                    Devices.update({Devices.uid eq creatingDevice.device.id }) {
+                    Devices.update({ Devices.uid eq creatingDevice.device.id }) {
                         it[state] = DeviceState.CREATING.lowercaseName()
                     }
                 }
             }
         }
         devices.forEach { farmPoolDevice ->
-            GlobalScope.async {
+            CoroutineScope(Dispatchers.Default).launch {
                 val device = deviceRepository.createDevice(farmPoolDevice.device)
                 insertOrUpdateDeviceInDB(
                     farmPoolDevice.copy(
-                        device = device,
-                        status = DeviceStatus.BUSY
+                        device = device, status = DeviceStatus.BUSY
                     )
                 )
             }
@@ -180,10 +202,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
             val availableDevices = getAvailableDevicesAndBlock(groupId, amount)
             val deviceToBeAcquired = if (availableDevices.size < amount) {
                 val startingLocalDevices = tryToRunLocalDevices(
-                    totalServerDevices,
-                    amount,
-                    availableDevices.size,
-                    groupId
+                    totalServerDevices, amount, availableDevices.size, groupId
                 )
                 availableDevices + startingLocalDevices
             } else availableDevices
@@ -215,10 +234,12 @@ abstract class DBDevicePool : AbstractDevicePool() {
         val requiredToRun = requestedAmount - availableAmount
         val runAmount = if (requiredToRun > availableToRun) availableToRun else requiredToRun
         log.info { "tryToRunLocalDevices: availableToRun = $availableToRun, requiredToRun = $requiredToRun, runAmount = $runAmount" }
-        return create(runAmount, DeviceInfo("AutoLaunched $groupId",groupId), DeviceStatus.BUSY)
+        return create(runAmount, DeviceInfo("AutoLaunched $groupId", groupId), DeviceStatus.BUSY)
     }
 
-    private fun addNeedToCreateDevices(amount: Int, groupId: String, userAgent: String): List<FarmPoolDevice> {
+    private fun addNeedToCreateDevices(
+        amount: Int, groupId: String, userAgent: String
+    ): List<FarmPoolDevice> {
         val newDevices = mutableListOf<FarmPoolDevice>()
         //if we have max devices amount on local server we can't create more
         //create it in DB and assume that other servers will create it by monitoring
@@ -238,12 +259,10 @@ abstract class DBDevicePool : AbstractDevicePool() {
      * should be called in transaction scope
      */
     private fun getAvailableDevicesAndBlock(
-        groupId: String,
-        limitAmount: Int
+        groupId: String, limitAmount: Int
     ): List<FarmPoolDevice> {
         return Devices.selectAll().where {
-            (Devices.groupId eq groupId)
-                .and(Devices.status eq DeviceStatus.FREE.lowercaseName())
+            (Devices.groupId eq groupId).and(Devices.status eq DeviceStatus.FREE.lowercaseName())
                 .and(Devices.state eq DeviceState.READY.lowercaseName())
         }.limit(limitAmount).forUpdate().mapToFarmPoolDevice()
     }
@@ -327,8 +346,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
                 id = it[Devices.uid],
                 state = DeviceState.valueOf(it[Devices.state].uppercase()),
                 deviceInfo = DeviceInfo(
-                    name = it[Devices.name],
-                    groupId = it[Devices.groupId]
+                    name = it[Devices.name], groupId = it[Devices.groupId]
                 ),
                 containerInfo = ContainerInfo(
                     ip = it[Devices.ip],

@@ -6,8 +6,9 @@ import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.DeviceRepository
 import com.atiurin.atp.farmserver.logging.log
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -42,7 +43,7 @@ abstract class CachedDevicePool : AbstractDevicePool() {
                 it.device.id == deviceId
             }
             device?.let {
-                GlobalScope.async {
+                CoroutineScope(Dispatchers.Default).launch {
                     deviceRepository.deleteDevice(deviceId)
                 }
             }
@@ -58,7 +59,7 @@ abstract class CachedDevicePool : AbstractDevicePool() {
                 farmPoolDevice.status = status
                 newDevices.add(farmPoolDevice)
                 devices.add(farmPoolDevice)
-                GlobalScope.async {
+                CoroutineScope(Dispatchers.Default).launch {
                     val device = deviceRepository.createDevice(farmPoolDevice.device)
                     devices.find { poolDevice ->
                         poolDevice.device.id == device.id
@@ -155,9 +156,20 @@ abstract class CachedDevicePool : AbstractDevicePool() {
         }
     }
 
-    override fun removeDeviceInState(state: DeviceState) {
+    override fun removeDeviceInStatus(amount: Int, groupId: String, status: DeviceStatus) {
         synchronized(devices) {
-            devices.filter { it.device.state == state }.forEach { poolDevice ->
+            val selectedDevices = devices.filter { it.status == status && it.device.deviceInfo.groupId == groupId }
+            val devicesToRemove = if (amount > 0) selectedDevices.take(amount) else selectedDevices
+            devicesToRemove.forEach { poolDevice ->
+                remove(poolDevice.device.id)
+            }
+        }
+    }
+    override fun removeDeviceInState(amount: Int, state: DeviceState) {
+        synchronized(devices) {
+            val selectedDevices = devices.filter { it.device.state == state }
+            val devicesToRemove = if (amount > 0) selectedDevices.take(amount) else selectedDevices
+            devicesToRemove.forEach { poolDevice ->
                 remove(poolDevice.device.id)
             }
         }

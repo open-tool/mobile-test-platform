@@ -13,8 +13,7 @@ class LocalServerRepository @Autowired constructor(
     @Qualifier("serversRepository") val serverRepository: ServerRepository,
     environment: Environment
 ) {
-    val ip = NetUtil.getLocalhostName()
-            ?: throw IllegalStateException("Can't get localhost name")
+    val ip = NetUtil.localhostName
 
     val port = environment.getProperty("local.server.port")?.toInt()
         ?: throw IllegalStateException("Can't get server port")

@@ -30,11 +30,13 @@ object NetUtil {
         throw IllegalStateException("No available port in the specified range")
     }
 
-    fun getLocalhostName(): String? = try {
-        InetAddress.getLocalHost().hostName
-    } catch (e: Exception) {
-        null
+    val localhostName: String by lazy {
+        try {
+            InetAddress.getLocalHost().hostName
+        } catch (e: Exception) {
+            ""
+        }
     }
 
-    fun isLocalServerIp(ip: String): Boolean = ip == getLocalhostName()
+    fun isLocalServerIp(ip: String): Boolean = ip == localhostName
 }

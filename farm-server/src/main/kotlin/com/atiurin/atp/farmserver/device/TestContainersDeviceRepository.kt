@@ -33,7 +33,7 @@ class TestContainersDeviceRepository @Autowired constructor(
         startContainer(container)
         val containerInfo = ContainerInfo(
             adbPort = container.getHostAdbPort(),
-            ip = NetUtil.getLocalhostName() ?: container.host,
+            ip = NetUtil.localhostName,
             gRpcPort = container.getHostGrpcPort(),
             dockerImage = image
         )

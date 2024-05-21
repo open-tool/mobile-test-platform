@@ -5,11 +5,8 @@ import com.atiurin.atp.farmcore.models.getPortInRange
 import com.atiurin.atp.farmcore.util.NetUtil
 import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.images.AndroidImagesConfiguration
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
-import java.util.UUID
 
 @Repository
 class MockDeviceRepository @Autowired constructor(
@@ -28,7 +25,7 @@ class MockDeviceRepository @Autowired constructor(
         }
         val dockerImg = androidImages.get(groupId)
         farmDevice.containerInfo = ContainerInfo(
-            NetUtil.getLocalhostName() ?: "mock_ip_${groupId}",
+            NetUtil.localhostName,
             config.getPortInRange(),
             config.getPortInRange(),
             dockerImg

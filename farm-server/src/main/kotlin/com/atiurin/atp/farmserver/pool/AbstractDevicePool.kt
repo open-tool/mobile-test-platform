@@ -2,6 +2,7 @@ package com.atiurin.atp.farmserver.pool
 
 import com.atiurin.atp.farmcore.models.DeviceState
 import com.atiurin.atp.farmcore.models.DeviceStatus
+import com.atiurin.atp.farmcore.util.NetUtil
 import com.atiurin.atp.farmserver.device.ContainerInfo
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.FarmDevice
@@ -16,7 +17,7 @@ abstract class AbstractDevicePool: DevicePool {
             id = UUID.randomUUID().toString(),
             deviceInfo = deviceInfo,
             state = DeviceState.CREATING,
-            containerInfo = ContainerInfo("", 0, 0, "")
+            containerInfo = ContainerInfo(NetUtil.localhostName, 0, 0, "")
         ),
         status = DeviceStatus.FREE,
         desc = "Creating new device"

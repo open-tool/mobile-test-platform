@@ -61,18 +61,13 @@ class Monitor @Autowired constructor(
                                     && farmPoolDevice.status == DeviceStatus.BUSY
                                     && farmPoolDevice.device.containerInfo.ip == localServerRepository.ip
                         }
-                        val needToRelease = if (busyDevicesAmount < amount) {
+                        val needToRemove = if (busyDevicesAmount < amount) {
                             aliveDevicesAmount - amount
                         } else {
                             aliveDevicesAmount - busyDevicesAmount
                         }
-                        if (needToRelease > 0) {
-                            val poolDevicesToRelease = devicePool.acquire(
-                                amount = needToRelease,
-                                groupId = groupId,
-                                userAgent = "DevicePoolReconfiguration"
-                            )
-                            devicePool.release(deviceIds = poolDevicesToRelease.map { poolDevice -> poolDevice.device.id })
+                        if (needToRemove > 0) {
+                            devicePool.removeDeviceInStatus(needToRemove, groupId, DeviceStatus.FREE)
                         }
                     }
                 }
@@ -112,7 +107,7 @@ class Monitor @Autowired constructor(
     suspend fun monitorLocalDeviceNeedToDelete() {
         while (true) {
             runCatching {
-                devicePool.removeDeviceInState(DeviceState.NEED_REMOVE)
+                devicePool.removeDeviceInState(state = DeviceState.NEED_REMOVE)
             }
             delay(farmConfig.get().deviceNeedToDeleteMonitorDelay)
         }
