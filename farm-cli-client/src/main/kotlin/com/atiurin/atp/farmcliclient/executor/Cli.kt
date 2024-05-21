@@ -1,5 +1,6 @@
 package com.atiurin.atp.farmcliclient.executor
 
+import com.atiurin.atp.farmcliclient.extensions.maskSensitiveData
 import com.atiurin.atp.farmcliclient.log
 import org.apache.commons.exec.CommandLine
 import org.apache.commons.exec.DefaultExecutor
@@ -23,7 +24,7 @@ object Cli {
         var executionTime = 0L
         var exitCode = 0
         val exit =  runCatching {
-            log.info { "Execute CLI command '$cmdLine' with timeoutMs = $timeoutMs and envs '$envs'"}
+            log.info { "Execute CLI command '$cmdLine' with timeoutMs = $timeoutMs and envs '${envs.maskSensitiveData()}'"}
             val cmd = CommandLine.parse(cmdLine)
             executor.watchdog = ExecuteWatchdog(timeoutMs)
             executionTime = measureTimeMillis {

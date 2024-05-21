@@ -40,6 +40,16 @@ class FarmClient(private val config: FarmClientConfig) {
         }
     }
 
+    fun state(deviceIds: List<String>): List<Device> {
+        val body = execute(deviceService.state(deviceIds)).body()
+        return if (body?.devices == null || body.devices.isEmpty()) {
+            throw FarmServerException("Couldn't get devices state from farm, reason: ${body?.message}")
+        } else {
+            println(body)
+            body.devices
+        }
+    }
+
     fun release(deviceIds: List<String>) {
         execute(deviceService.release(deviceIds))
         deviceIds.forEach { deviceId ->

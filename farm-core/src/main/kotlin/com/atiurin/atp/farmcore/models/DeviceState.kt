@@ -14,3 +14,7 @@ fun DeviceState.lowercaseName() = this.name.lowercase(Locale.getDefault())
 fun DeviceState.isAlive(): Boolean {
     return this != DeviceState.NEED_REMOVE && this != DeviceState.REMOVING
 }
+
+fun DeviceState.isPreparing(): Boolean {
+    return this == DeviceState.NEED_CREATE || this == DeviceState.CREATING
+}

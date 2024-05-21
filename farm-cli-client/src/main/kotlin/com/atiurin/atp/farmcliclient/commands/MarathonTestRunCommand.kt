@@ -5,6 +5,8 @@ import com.atiurin.atp.farmcliclient.adb.AdbServer
 import com.atiurin.atp.farmcliclient.adb.AdbServerImpl
 import com.atiurin.atp.farmcliclient.executor.Cli
 import com.atiurin.atp.farmcliclient.log
+import com.atiurin.atp.farmcliclient.services.DeviceConnectionService
+import com.atiurin.atp.farmcliclient.services.FarmDeviceConnectionService
 import com.atiurin.atp.farmcore.util.NetUtil
 import com.atiurin.atp.farmcore.models.Device
 import org.apache.commons.exec.environment.EnvironmentUtils
@@ -19,17 +21,11 @@ class MarathonTestRunCommand(
     private val marathonCommand: String? = null,
     envs: Map<String, String> = mutableMapOf()
 ) : Command {
-    private val farmClient = FarmClientProvider.client
-    private val devices = mutableListOf<Device>()
+
     private val environments =
         envs.toMutableMap().apply { this.putAll(EnvironmentUtils.getProcEnvironment()) }
 
-    fun requestDevices() {
-        devices.addAll(farmClient.acquire(deviceAmount, groupId))
-        if (devices.isEmpty()) throw RuntimeException("No devices available")
-    }
-
-    fun runAdbServer(): AdbServer {
+    private fun runAdbServer(): AdbServer {
         val adbPort = adbPortVariable?.let {
             val port = NetUtil.getFreePort()
             environments[adbPortVariable] = port.toString()
@@ -50,13 +46,13 @@ class MarathonTestRunCommand(
     }
 
     override fun execute(): Boolean {
-        requestDevices()
         val adbServer = runAdbServer()
-        adbServer.connect(devices)
+        val connectionService: DeviceConnectionService = FarmDeviceConnectionService(FarmClientProvider.client, adbServer)
+        connectionService.connect(deviceAmount, groupId)
         val isSuccess = Cli.execute(buildCliCommand(), environments)
         log.info { "marathon cli command success = $isSuccess" }
+        connectionService.disconnect()
         adbServer.kill()
-        farmClient.releaseAllCaptured()
         return isSuccess
     }
 }

@@ -19,6 +19,7 @@ fun FarmDevice.toDevice() = Device(
     dockerImage = this.containerInfo.dockerImage,
     ip = this.containerInfo.ip,
     adbConnectPort = this.containerInfo.adbPort,
+    state = this.state
 )
 
 data class DeviceInfo(

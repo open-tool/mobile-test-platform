@@ -24,6 +24,19 @@ class AdbServerImpl(override val port: Int) : AdbServer {
         }
     }
 
+    override suspend fun connect(device: Device) {
+        log.info { "Connect device: $device" }
+        Cli.execute("adb $portCmdPart connect ${device.ip}:${device.adbConnectPort}")
+        Cli.execute("adb $portCmdPart -s ${device.ip}:${device.adbConnectPort} wait-for-device")
+    }
+
+    override fun disconnect(devices: List<Device>) {
+        log.info { "devices to disconnect: $devices" }
+        devices.forEach {
+            Cli.execute("adb $portCmdPart disconnect ${it.ip}:${it.adbConnectPort}")
+        }
+    }
+
     override fun printDevices() {
         Cli.execute("adb $portCmdPart devices")
     }
