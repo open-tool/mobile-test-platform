@@ -21,7 +21,7 @@ class DBServerRepository : ServerRepository {
             Servers.upsert(Servers.ip, Servers.port){
                 it[this.ip] = ip
                 it[this.port] = port
-                it[aliveTimestamp] = Instant.now().toEpochMilli()
+                it[aliveTimestamp] = Instant.now().epochSecond
             }
         }
     }
@@ -42,7 +42,7 @@ class DBServerRepository : ServerRepository {
     }
 
     override fun getAliveServers(): List<ServerInfo> {
-        val now = Instant.now().toEpochMilli()
+        val now = Instant.now().epochSecond
         val thirtySecondsAgo = now - 30_000 // 30 seconds in milliseconds
 
         return transaction {

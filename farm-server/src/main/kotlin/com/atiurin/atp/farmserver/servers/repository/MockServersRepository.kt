@@ -9,7 +9,7 @@ class MockServersRepository : ServerRepository {
     private val servers = mutableMapOf<String, ServerInfo>()
 
     override fun register(ip: String, port: Int) {
-        servers["$ip:$port"] = ServerInfo(ip, port, Instant.now().toEpochMilli())
+        servers["$ip:$port"] = ServerInfo(ip, port, Instant.now().epochSecond)
     }
 
     override fun unregister(ip: String, port: Int) {
@@ -18,11 +18,11 @@ class MockServersRepository : ServerRepository {
 
     override fun updateAliveTimestamp(ip: String, port: Int) {
         servers["$ip:$port"]?.let {
-            servers["$ip:$port"] = it.copy(aliveTimestamp = Instant.now().toEpochMilli()) }
+            servers["$ip:$port"] = it.copy(aliveTimestamp = Instant.now().epochSecond) }
         }
 
     override fun getAliveServers(): List<ServerInfo> {
-        val now = Instant.now().toEpochMilli()
+        val now = Instant.now().epochSecond
         val thirtySecondsAgo = now - 30_000 // 30 seconds in milliseconds
 
         return servers.values.toList().filter {

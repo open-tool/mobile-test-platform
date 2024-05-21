@@ -55,8 +55,8 @@ class DeviceRestController @Autowired constructor(
         }
     }
 
-    @GetMapping("/state")
-    fun state(@RequestParam deviceIds: List<String>): GetDevicesResponse {
+    @GetMapping("/info")
+    fun info(@RequestParam deviceIds: List<String>): GetDevicesResponse {
         log.info { "list devices request" }
         return processRequest {
             val poolDevices = devicePool.all().filter { it.device.id in deviceIds }.mapToDevices()

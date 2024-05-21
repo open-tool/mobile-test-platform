@@ -34,7 +34,7 @@ class FarmDeviceConnectionService(
         val deviceConnectionScope = CoroutineScope(Dispatchers.Default)
         val notReadyDevice = devices.filter { it.state.isPreparing() }.map { it.id }
         if (notReadyDevice.isEmpty()) return
-        val readyToConnectDevices = farmClient.state(notReadyDevice)
+        val readyToConnectDevices = farmClient.info(notReadyDevice)
             .filter { it.state == DeviceState.READY }
         readyToConnectDevices.forEach { updatedDevice ->
             devices.removeIf { it.id == updatedDevice.id }

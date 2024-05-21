@@ -33,7 +33,7 @@ open class BaseRestControllerTest {
             imagesMap = mutableMapOf("30" to "init30image", "31" to "init31image"),
             startPort = 10000,
             endPort = 11000,
-            farmMode = FarmMode.Local
+            farmMode = FarmMode.Multiple
         )
     }
 

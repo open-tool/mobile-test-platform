@@ -140,8 +140,8 @@ abstract class DBDevicePool : AbstractDevicePool() {
                 it[status] = farmPoolDevice.status.lowercaseName()
                 it[desc] = farmPoolDevice.desc
                 it[userAgent] = farmPoolDevice.userAgent
-                it[busyTimestamp] = farmPoolDevice.busyTimestampSec
-                it[lastPingTimestamp] = farmPoolDevice.lastPingTimestampSec
+                it[busyTimestampSec] = farmPoolDevice.busyTimestampSec
+                it[lastPingTimestampSec] = farmPoolDevice.lastPingTimestampSec
             }
         }
 
@@ -189,7 +189,9 @@ abstract class DBDevicePool : AbstractDevicePool() {
                 val device = deviceRepository.createDevice(farmPoolDevice.device)
                 insertOrUpdateDeviceInDB(
                     farmPoolDevice.copy(
-                        device = device, status = DeviceStatus.BUSY
+                        device = device,
+                        status = DeviceStatus.BUSY,
+                        busyTimestampSec = Instant.now().epochSecond,
                     )
                 )
             }
@@ -210,7 +212,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
             Devices.update({ Devices.uid inList idsForUpdate }) {
                 it[Devices.userAgent] = userAgent
                 it[status] = DeviceStatus.BUSY.lowercaseName()
-                it[busyTimestamp] = Instant.now().toEpochMilli()
+                it[busyTimestampSec] = Instant.now().epochSecond
             }
             deviceToBeAcquired
         }
@@ -244,8 +246,9 @@ abstract class DBDevicePool : AbstractDevicePool() {
         //if we have max devices amount on local server we can't create more
         //create it in DB and assume that other servers will create it by monitoring
         repeat(amount) {
-            val farmPoolDevice = initDevice(groupId).apply {
+            val farmPoolDevice = initDevice(groupId, "").apply {
                 device.state = DeviceState.NEED_CREATE
+                status = DeviceStatus.BUSY
                 this.userAgent = userAgent
             }
             insertOrUpdateDeviceInDB(farmPoolDevice)
@@ -261,9 +264,12 @@ abstract class DBDevicePool : AbstractDevicePool() {
     private fun getAvailableDevicesAndBlock(
         groupId: String, limitAmount: Int
     ): List<FarmPoolDevice> {
+        val aliveServerIps = localServerRepository.getAliveServers().map { it.ip }
         return Devices.selectAll().where {
-            (Devices.groupId eq groupId).and(Devices.status eq DeviceStatus.FREE.lowercaseName())
+            (Devices.groupId eq groupId)
+                .and(Devices.status eq DeviceStatus.FREE.lowercaseName())
                 .and(Devices.state eq DeviceState.READY.lowercaseName())
+                .and(Devices.ip inList aliveServerIps)
         }.limit(limitAmount).forUpdate().mapToFarmPoolDevice()
     }
 
@@ -275,7 +281,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
                     Devices.update({ Devices.uid eq result[Devices.uid] }) {
                         it[userAgent] = null
                         it[status] = DeviceStatus.FREE.lowercaseName()
-                        it[busyTimestamp] = 0L
+                        it[busyTimestampSec] = 0L
                     }
                 }
         }
@@ -288,7 +294,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
                     Devices.update({ Devices.uid eq result[Devices.uid] }) {
                         it[userAgent] = null
                         it[status] = DeviceStatus.FREE.lowercaseName()
-                        it[busyTimestamp] = 0L
+                        it[busyTimestampSec] = 0L
                     }
                 }
         }
@@ -301,7 +307,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
                     Devices.update({ Devices.uid eq result[Devices.uid] }) {
                         it[userAgent] = null
                         it[status] = DeviceStatus.FREE.lowercaseName()
-                        it[busyTimestamp] = 0L
+                        it[busyTimestampSec] = 0L
                     }
                 }
         }
@@ -361,8 +367,8 @@ abstract class DBDevicePool : AbstractDevicePool() {
                 status = DeviceStatus.valueOf(it[Devices.status].uppercase()),
                 desc = it[Devices.desc],
                 userAgent = it[Devices.userAgent],
-                busyTimestampSec = it[Devices.busyTimestamp],
-                lastPingTimestampSec = it[Devices.lastPingTimestamp]
+                busyTimestampSec = it[Devices.busyTimestampSec],
+                lastPingTimestampSec = it[Devices.lastPingTimestampSec]
             )
         }
     }

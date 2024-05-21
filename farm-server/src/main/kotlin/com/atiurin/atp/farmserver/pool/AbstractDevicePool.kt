@@ -10,14 +10,14 @@ import java.util.UUID
 
 abstract class AbstractDevicePool: DevicePool {
 
-    fun initDevice(groupId: String) = initDevice(DeviceInfo("AutoLaunched group '$groupId'", groupId))
+    fun initDevice(groupId: String, ip: String = NetUtil.localhostName) = initDevice(DeviceInfo("AutoLaunched group '$groupId'", groupId), ip)
 
-    fun initDevice(deviceInfo: DeviceInfo) = FarmPoolDevice(
+    fun initDevice(deviceInfo: DeviceInfo, ip: String = NetUtil.localhostName) = FarmPoolDevice(
         device = FarmDevice(
             id = UUID.randomUUID().toString(),
             deviceInfo = deviceInfo,
             state = DeviceState.CREATING,
-            containerInfo = ContainerInfo(NetUtil.localhostName, 0, 0, "")
+            containerInfo = ContainerInfo(ip, 0, 0, "")
         ),
         status = DeviceStatus.FREE,
         desc = "Creating new device"
