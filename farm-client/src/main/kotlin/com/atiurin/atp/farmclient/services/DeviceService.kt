@@ -15,6 +15,11 @@ interface DeviceService {
         @Query("userAgent") userAgent: String
     ): Call<GetDevicesResponse>
 
+    @GET("/device/info")
+    fun info(
+        @Query("deviceIds") deviceIds: List<String>
+    ): Call<GetDevicesResponse>
+
     @POST("/device/release")
     fun release(
         @Query("deviceIds") deviceIds: List<String>

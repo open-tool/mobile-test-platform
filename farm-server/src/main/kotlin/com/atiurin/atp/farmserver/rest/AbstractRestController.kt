@@ -6,7 +6,9 @@ import com.atiurin.atp.farmserver.logging.log
 abstract class AbstractRestController {
     inline fun <reified T : BaseResponse> processRequest(operation: () -> T): T {
         return try {
-            operation()
+            val r = operation()
+            log.info { "Response: $r" }
+            r
         } catch (ex: Exception) {
             ex.message?.let { msg -> log.error{ msg } }
             ex.stackTrace.forEach { trace -> log.error{ trace } }

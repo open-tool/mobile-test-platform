@@ -282,3 +282,4 @@ apks/
 data/
 marathon-report/
 local.properties
+.docker/

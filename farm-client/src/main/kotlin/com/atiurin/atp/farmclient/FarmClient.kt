@@ -40,6 +40,16 @@ class FarmClient(private val config: FarmClientConfig) {
         }
     }
 
+    fun info(deviceIds: List<String>): List<Device> {
+        val body = execute(deviceService.info(deviceIds)).body()
+        return if (body?.devices == null || body.devices.isEmpty()) {
+            throw FarmServerException("Couldn't get devices state from farm, reason: ${body?.message}")
+        } else {
+            println(body)
+            body.devices
+        }
+    }
+
     fun release(deviceIds: List<String>) {
         execute(deviceService.release(deviceIds))
         deviceIds.forEach { deviceId ->
@@ -58,7 +68,6 @@ class FarmClient(private val config: FarmClientConfig) {
 
     private fun <T : BaseResponse> execute(call: Call<T>): Response<T> {
         val response = call.execute()
-//        println(response)
         if (response.code() == 500) {
             throw FarmServerException("Internal server error: " + response.message())
         }

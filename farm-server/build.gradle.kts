@@ -53,8 +53,11 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
     implementation("io.micrometer:micrometer-core:1.11.5")
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.5")
-    implementation ("javax.inject:javax.inject:1")
-    runtimeOnly("com.h2database:h2:1.4.200")
+    implementation("org.jetbrains.exposed:exposed-core:0.50.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.50.0")
+    implementation("org.jetbrains.exposed:exposed-spring-boot-starter:0.50.0")
+    implementation("org.postgresql:postgresql:42.7.1")
+    implementation("javax.inject:javax.inject:1")
     testImplementation("org.springframework.boot:spring-boot-starter-test:3.2.5") {
         exclude(module = "mockito-core")
     }

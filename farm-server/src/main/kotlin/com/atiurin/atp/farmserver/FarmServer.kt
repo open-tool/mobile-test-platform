@@ -1,20 +1,27 @@
 package com.atiurin.atp.farmserver
 
+import com.atiurin.atp.farmcore.models.FarmMode
 import com.atiurin.atp.farmserver.config.InitialArguments
 import com.atiurin.atp.farmserver.config.InitialConfig
 import com.atiurin.atp.farmserver.logging.log
-import com.atiurin.atp.farmserver.monitor.Monitor
+import com.atiurin.atp.farmserver.servers.repository.LocalServerRepository
+import com.atiurin.atp.farmserver.servers.repository.ServerRepository
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.associate
+import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.long
+import jakarta.annotation.PreDestroy
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.logging.LoggingApplicationListener
 import org.springframework.boot.runApplication
+import org.springframework.core.env.Environment
+
 
 fun main(args: Array<String>) = App().main(args)
 
@@ -26,6 +33,7 @@ class App: CliktCommand() {
     val mockDevice by option("-md", "--mock_device").flag()
     val startPortParam by option("-sp", "--start_port").int()
     val endPortParam by option("-ep", "--end_port").int()
+    val mode: FarmMode by option("-fm", "--farm_mode").enum<FarmMode>().default(FarmMode.Multiple)
 
     override fun run() {
         log.info {
@@ -49,7 +57,8 @@ class App: CliktCommand() {
             isMock = mockDevice,
             startPort = startPortParam ?: 0,
             endPort = endPortParam ?: 65534,
-            imagesMap = images
+            imagesMap = images,
+            farmMode = mode
         )
         val app = runApplication<FarmServer>()
         app.addApplicationListener { LoggingApplicationListener() }
@@ -60,8 +69,11 @@ class App: CliktCommand() {
 
 @SpringBootApplication
 class FarmServer {
+    @Autowired
+    lateinit var localServerRepository: LocalServerRepository
+
     fun run(){
-        //some use full code
+        localServerRepository.register()
     }
 }
 
