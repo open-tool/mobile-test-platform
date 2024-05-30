@@ -10,18 +10,14 @@ import com.atiurin.atp.farmserver.db.Servers
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.rest.ConfigRestController
 import com.atiurin.atp.farmserver.rest.DeviceRestController
-import org.jetbrains.exposed.sql.Schema
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.context.annotation.Bean
-import org.springframework.test.annotation.DirtiesContext
 
 open class BaseRestControllerTest {
     companion object {
@@ -33,13 +29,13 @@ open class BaseRestControllerTest {
             imagesMap = mutableMapOf("30" to "init30image", "31" to "init31image"),
             startPort = 10000,
             endPort = 11000,
-            farmMode = FarmMode.Multiple
         )
     }
+    @Autowired lateinit var farmConfig: FarmConfig
 
     @BeforeEach
     fun cleanUp() {
-        if (initialConfig.farmMode == FarmMode.Multiple){
+        if (farmConfig.get().farmMode == FarmMode.MULTIPLE){
             log.info { "Clean up database" }
             deviceRestController.list().poolDevices.forEach {
                 deviceRestController.remove(it.device.id)
@@ -68,7 +64,7 @@ open class BaseRestControllerTest {
     internal class FarmTestConfiguration {
         @Bean
         fun farmConfig(): FarmConfig = object : FarmConfig {
-            val config: Config = initialConfig.toConfig().copy(
+            val config: Config = initialConfig.toConfig(FarmMode.MULTIPLE).copy(
                 devicePoolMonitorDelay = 1000,
                 busyDevicesMonitorDelay = 1000,
                 serverMonitorDelay = 1000,
