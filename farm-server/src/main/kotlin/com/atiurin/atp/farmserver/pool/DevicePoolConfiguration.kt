@@ -26,10 +26,10 @@ class DevicePoolConfiguration @Autowired constructor(@Lazy val farmConfig: FarmC
     fun devicePool(): DevicePool {
         val config = farmConfig.get()
         val p = when  {
-            config.farmMode == FarmMode.Local && config.isMock ->  mockDevicePool
-            config.farmMode == FarmMode.Local && !config.isMock ->  localTestContainersPool
-            config.farmMode == FarmMode.Multiple && config.isMock -> mockDBDevicePool
-            config.farmMode == FarmMode.Multiple && !config.isMock -> dbTestContainersPool
+            config.farmMode == FarmMode.LOCAL && config.isMock ->  mockDevicePool
+            config.farmMode == FarmMode.LOCAL && !config.isMock ->  localTestContainersPool
+            config.farmMode == FarmMode.MULTIPLE && config.isMock -> mockDBDevicePool
+            config.farmMode == FarmMode.MULTIPLE && !config.isMock -> dbTestContainersPool
             else -> throw IllegalStateException("Unknown farm mode")
         }
         return p

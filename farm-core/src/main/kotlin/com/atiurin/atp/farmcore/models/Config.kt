@@ -12,7 +12,7 @@ data class Config(
     var devicePoolMonitorDelay: Long = 5_000L,
     var serverMonitorDelay: Long = 5_000L,
     var busyDevicesMonitorDelay: Long = 5_000L,
-    val farmMode: FarmMode = FarmMode.Local,
+    val farmMode: FarmMode = FarmMode.LOCAL,
     val deviceNeedToDeleteMonitorDelay: Long = 5_000L,
     val deviceNeedToCreateMonitorDelay: Long = 5_000L
 )

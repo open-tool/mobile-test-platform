@@ -16,8 +16,10 @@ import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.long
 import jakarta.annotation.PreDestroy
+import org.jetbrains.exposed.spring.autoconfigure.ExposedAutoConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 import org.springframework.boot.context.logging.LoggingApplicationListener
 import org.springframework.boot.runApplication
 import org.springframework.core.env.Environment
@@ -33,7 +35,6 @@ class App: CliktCommand() {
     val mockDevice by option("-md", "--mock_device").flag()
     val startPortParam by option("-sp", "--start_port").int()
     val endPortParam by option("-ep", "--end_port").int()
-    val mode: FarmMode by option("-fm", "--farm_mode").enum<FarmMode>().default(FarmMode.Multiple)
 
     override fun run() {
         log.info {
@@ -58,7 +59,6 @@ class App: CliktCommand() {
             startPort = startPortParam ?: 0,
             endPort = endPortParam ?: 65534,
             imagesMap = images,
-            farmMode = mode
         )
         val app = runApplication<FarmServer>()
         app.addApplicationListener { LoggingApplicationListener() }
@@ -67,7 +67,7 @@ class App: CliktCommand() {
     }
 }
 
-@SpringBootApplication
+@SpringBootApplication(exclude = [DataSourceAutoConfiguration::class, ExposedAutoConfiguration::class])
 class FarmServer {
     @Autowired
     lateinit var localServerRepository: LocalServerRepository

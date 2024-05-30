@@ -11,16 +11,15 @@ data class InitialConfig(
     val startPort: Int = 0,
     val endPort: Int = 65534,
     val imagesMap: Map<String, String> = mapOf(),
-    val farmMode: FarmMode = FarmMode.Local
 )
 
-fun InitialConfig.toConfig() = Config(
+fun InitialConfig.toConfig(farmMode: FarmMode = FarmMode.LOCAL) = Config(
     maxDevicesAmount = this.maxDevicesAmount,
     keepAliveDevicesMap = this.keepAliveDevicesMap.toMutableMap(),
     deviceBusyTimeoutSec = this.deviceBusyTimeoutSec,
     isMock = this.isMock,
     startPort = this.startPort,
     endPort = this.endPort,
-    farmMode = this.farmMode
+    farmMode = farmMode
 )
 

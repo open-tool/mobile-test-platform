@@ -20,9 +20,9 @@ class ServersConfiguration @Autowired constructor(private val farmConfig: FarmCo
     @Bean
     fun serversRepository(): ServerRepository {
         return when (farmConfig.get().farmMode) {
-            FarmMode.Local -> mockServersRepository
-            FarmMode.Multiple -> dbServerRepository
-            FarmMode.Cluster -> {
+            FarmMode.LOCAL -> mockServersRepository
+            FarmMode.MULTIPLE -> dbServerRepository
+            FarmMode.CLUSTER -> {
                 throw IllegalStateException("Cluster farm mode is not supported yet")
             }
         }
