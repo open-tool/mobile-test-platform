@@ -1,7 +1,7 @@
 package com.atiurin.atp.farmclient.okhttpclient
 
 import com.atiurin.atp.farmclient.FarmClientConfig
-import okhttp3.Credentials
+import com.atiurin.atp.farmclient.interceptors.FallbackInterceptor
 import okhttp3.OkHttpClient
 import java.security.SecureRandom
 import java.security.cert.CertificateException
@@ -30,6 +30,7 @@ class UnsafeOkHttpClientProvider : OkHttpClientProvider {
         sslContext.init(null, trustAllCerts, SecureRandom())
         val sslSocketFactory = sslContext.socketFactory
         val builder = OkHttpClient.Builder().apply {
+            addInterceptor(FallbackInterceptor(config.farmUrls))
             connectTimeout(config.connectionTimeoutMs, TimeUnit.MILLISECONDS)
             readTimeout(config.readTimeoutMs, TimeUnit.MILLISECONDS)
             sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)

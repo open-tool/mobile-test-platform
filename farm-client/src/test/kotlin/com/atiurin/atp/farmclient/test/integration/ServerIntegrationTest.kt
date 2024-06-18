@@ -7,8 +7,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class ServerIntegrationTest {
+
     val client = FarmClient(FarmClientConfig(
-        farmUrl = "http://localhost:8080",
+        farmUrls = listOf("http://localhost:7070", "http://localhost:8080"),
         userAgent = "test"
     ))
 

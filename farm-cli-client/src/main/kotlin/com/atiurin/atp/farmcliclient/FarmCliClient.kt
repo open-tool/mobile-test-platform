@@ -6,6 +6,7 @@ import com.atiurin.atp.farmclient.FarmClientConfig
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.associate
 import com.github.ajalt.clikt.parameters.options.flag
+import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.enum
@@ -21,7 +22,7 @@ class Log() {
 }
 
 class FarmCliClient : CliktCommand() {
-    val url: String? by option("-u", "--url")
+    val urls: List<String>? by option("-u", "--url").multiple()
     val command: Command? by option("-c", "--command").enum<Command>()
     val deviceAmount by option("-da", "--device_amount").int().required()
 
@@ -42,7 +43,7 @@ class FarmCliClient : CliktCommand() {
         val group = groupId ?: api ?: throw RuntimeException("Specify -g or --group_id option.")
         FarmClientProvider.init(
             FarmClientConfig(
-                farmUrl = url ?: "http://localhost:8080",
+                farmUrls = urls ?: listOf("http://localhost:8080"),
                 userAgent = userAgent ?: getGitlabProjectId() ?: "test"
             )
         )

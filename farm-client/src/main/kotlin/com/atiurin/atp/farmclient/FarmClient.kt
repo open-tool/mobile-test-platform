@@ -18,7 +18,7 @@ class FarmClient(private val config: FarmClientConfig) {
     init {
         val retrofit = Retrofit.Builder()
             .client(httpClient)
-            .baseUrl(config.farmUrl)
+            .baseUrl(config.farmUrls[0])
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         this.deviceService = retrofit.create(DeviceService::class.java)

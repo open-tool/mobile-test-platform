@@ -49,7 +49,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator:3.2.5")
     implementation("org.springframework.boot:spring-boot-starter-validation:3.2.5")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("com.github.ajalt.clikt:clikt:3.2.0")
+    implementation("com.github.ajalt.clikt:clikt:4.4.0")
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
     implementation("io.micrometer:micrometer-core:1.11.5")
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.5")
