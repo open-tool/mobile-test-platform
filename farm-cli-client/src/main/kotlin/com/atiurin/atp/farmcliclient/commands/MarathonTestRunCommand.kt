@@ -3,12 +3,11 @@ package com.atiurin.atp.farmcliclient.commands
 import com.atiurin.atp.farmcliclient.FarmClientProvider
 import com.atiurin.atp.farmcliclient.adb.AdbServer
 import com.atiurin.atp.farmcliclient.adb.AdbServerImpl
-import com.atiurin.atp.farmcliclient.executor.Cli
 import com.atiurin.atp.farmcliclient.log
 import com.atiurin.atp.farmcliclient.services.DeviceConnectionService
 import com.atiurin.atp.farmcliclient.services.FarmDeviceConnectionService
-import com.atiurin.atp.farmcore.util.NetUtil
-import com.atiurin.atp.farmcore.models.Device
+import com.atiurin.atp.farmserver.util.NetUtil
+import com.farm.cli.executor.Cli
 import org.apache.commons.exec.environment.EnvironmentUtils
 
 
@@ -49,10 +48,10 @@ class MarathonTestRunCommand(
         val adbServer = runAdbServer()
         val connectionService: DeviceConnectionService = FarmDeviceConnectionService(FarmClientProvider.client, adbServer)
         connectionService.connect(deviceAmount, groupId)
-        val isSuccess = Cli.execute(buildCliCommand(), environments)
-        log.info { "marathon cli command success = $isSuccess" }
+        val result = Cli.execute(buildCliCommand(), environments)
+        log.info { "marathon cli command success = ${result.success}, message = ${result.message}" }
         connectionService.disconnect()
         adbServer.kill()
-        return isSuccess
+        return result.success
     }
 }

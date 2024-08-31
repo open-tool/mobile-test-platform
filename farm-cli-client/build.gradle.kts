@@ -21,13 +21,15 @@ distributions {
 }
 repositories {
     mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
+    google()
 }
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation(project(":farm-client"))
+    implementation(project(":farm-kmp-client"))
     implementation(project(":farm-core"))
-    implementation("org.apache.commons:commons-exec:1.3")
+    implementation(project(":cli-support"))
     implementation("com.github.ajalt.clikt:clikt:3.2.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
     implementation("org.junit.jupiter:junit-jupiter:5.7.0")

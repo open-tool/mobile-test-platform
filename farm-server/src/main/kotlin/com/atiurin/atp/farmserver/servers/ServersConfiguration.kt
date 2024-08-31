@@ -1,6 +1,6 @@
 package com.atiurin.atp.farmserver.servers
 
-import com.atiurin.atp.farmcore.models.FarmMode
+import com.atiurin.atp.farmcore.entity.FarmMode
 import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.servers.repository.DBServerRepository
 import com.atiurin.atp.farmserver.servers.repository.MockServersRepository

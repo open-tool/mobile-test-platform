@@ -1,7 +1,7 @@
 package com.atiurin.atp.farmserver.config
 
-import com.atiurin.atp.farmcore.models.Config
-import com.atiurin.atp.farmcore.models.FarmMode
+import com.atiurin.atp.farmcore.entity.Config
+import com.atiurin.atp.farmcore.entity.FarmMode
 
 data class InitialConfig(
     val maxDevicesAmount: Int = 0,

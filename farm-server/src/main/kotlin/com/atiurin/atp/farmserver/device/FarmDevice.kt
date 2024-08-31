@@ -1,7 +1,7 @@
 package com.atiurin.atp.farmserver.device
 
-import com.atiurin.atp.farmcore.models.Device
-import com.atiurin.atp.farmcore.models.DeviceState
+import com.atiurin.atp.farmcore.entity.Device
+import com.atiurin.atp.farmcore.entity.DeviceState
 import org.testcontainers.containers.GenericContainer
 
 data class FarmDevice(

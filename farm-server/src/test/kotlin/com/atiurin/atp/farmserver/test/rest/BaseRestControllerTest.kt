@@ -1,7 +1,7 @@
 package com.atiurin.atp.farmserver.test.rest
 
-import com.atiurin.atp.farmcore.models.Config
-import com.atiurin.atp.farmcore.models.FarmMode
+import com.atiurin.atp.farmcore.entity.Config
+import com.atiurin.atp.farmcore.entity.FarmMode
 import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.config.InitialConfig
 import com.atiurin.atp.farmserver.config.toConfig

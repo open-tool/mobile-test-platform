@@ -1,6 +1,6 @@
 package com.atiurin.atp.farmcliclient.adb
 
-import com.atiurin.atp.farmcore.models.Device
+import com.atiurin.atp.farmcore.entity.Device
 
 interface AdbServer {
     val port: Int

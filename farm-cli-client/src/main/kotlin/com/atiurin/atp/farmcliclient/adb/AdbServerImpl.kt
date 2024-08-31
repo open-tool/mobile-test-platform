@@ -1,8 +1,8 @@
 package com.atiurin.atp.farmcliclient.adb
 
-import com.atiurin.atp.farmcliclient.executor.Cli
 import com.atiurin.atp.farmcliclient.log
-import com.atiurin.atp.farmcore.models.Device
+import com.atiurin.atp.farmcore.entity.Device
+import com.farm.cli.executor.Cli
 
 class AdbServerImpl(override val port: Int) : AdbServer {
 

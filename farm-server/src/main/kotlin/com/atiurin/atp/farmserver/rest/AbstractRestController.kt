@@ -1,6 +1,6 @@
 package com.atiurin.atp.farmserver.rest
 
-import com.atiurin.atp.farmcore.responses.BaseResponse
+import com.atiurin.atp.farmcore.api.response.BaseResponse
 import com.atiurin.atp.farmserver.logging.log
 
 abstract class AbstractRestController {

@@ -8,7 +8,9 @@ version = appVersion
 group = "com.atiurin.atp.farmclient"
 
 repositories {
+    maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
     mavenCentral()
+    google()
 }
 
 dependencies {
