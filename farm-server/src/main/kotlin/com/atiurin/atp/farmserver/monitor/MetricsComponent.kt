@@ -64,7 +64,7 @@ class MetricsComponent @Autowired constructor(
             gauges.add(
                 Gauge.builder("metrics.pool.devices.$groupId.busy", this) {
                     devicePool.all()
-                        .count { it.device.deviceInfo.groupId == groupId && it.status == DeviceStatus.FREE }
+                        .count { it.device.deviceInfo.groupId == groupId && it.status == DeviceStatus.BUSY }
                         .toDouble()
                 }.register(meterRegistry)
             )
