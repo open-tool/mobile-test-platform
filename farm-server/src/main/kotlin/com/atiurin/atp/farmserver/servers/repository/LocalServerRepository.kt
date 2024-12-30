@@ -1,7 +1,7 @@
 package com.atiurin.atp.farmserver.servers.repository
 
-import com.atiurin.atp.farmcore.util.NetUtil
 import com.atiurin.atp.farmserver.servers.ServerInfo
+import com.atiurin.atp.farmserver.util.NetUtil
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean

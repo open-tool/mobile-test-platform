@@ -3,8 +3,11 @@ package com.atiurin.atp.farmclient
 import com.atiurin.atp.farmclient.exceptions.FarmServerException
 import com.atiurin.atp.farmclient.okhttpclient.UnsafeOkHttpClientProvider
 import com.atiurin.atp.farmclient.services.DeviceService
-import com.atiurin.atp.farmcore.models.Device
-import com.atiurin.atp.farmcore.responses.BaseResponse
+import com.atiurin.atp.farmcore.api.model.toDevice
+import com.atiurin.atp.farmcore.api.model.toPoolDevices
+import com.atiurin.atp.farmcore.api.response.BaseResponse
+import com.atiurin.atp.farmcore.entity.Device
+import com.atiurin.atp.farmcore.entity.PoolDevice
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -34,19 +37,19 @@ class FarmClient(private val config: FarmClientConfig) {
         } else {
             println(body)
             body.devices.apply {
-                acquiredDevices.addAll(this)
+                acquiredDevices.addAll(this.map { it.toDevice() })
             }
             acquiredDevices
         }
     }
 
-    fun info(deviceIds: List<String>): List<Device> {
+    fun info(deviceIds: List<String>): List<PoolDevice> {
         val body = execute(deviceService.info(deviceIds)).body()
-        return if (body?.devices == null || body.devices.isEmpty()) {
+        return if (body?.poolDevices == null || body.poolDevices.isEmpty()) {
             throw FarmServerException("Couldn't get devices state from farm, reason: ${body?.message}")
         } else {
             println(body)
-            body.devices
+            body.poolDevices.toPoolDevices()
         }
     }
 

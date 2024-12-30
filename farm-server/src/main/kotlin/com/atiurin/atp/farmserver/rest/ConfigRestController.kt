@@ -1,9 +1,8 @@
 package com.atiurin.atp.farmserver.rest
 
-import com.atiurin.atp.farmcore.responses.BaseResponse
-import com.atiurin.atp.farmcore.responses.GetConfigResponse
+import com.atiurin.atp.farmcore.api.response.BaseResponse
+import com.atiurin.atp.farmcore.api.response.GetConfigResponse
 import com.atiurin.atp.farmserver.config.FarmConfig
-import com.atiurin.atp.farmserver.config.FarmConfigImpl
 import com.atiurin.atp.farmserver.images.AndroidImagesConfiguration
 import com.atiurin.atp.farmserver.logging.log
 import org.springframework.beans.factory.annotation.Autowired

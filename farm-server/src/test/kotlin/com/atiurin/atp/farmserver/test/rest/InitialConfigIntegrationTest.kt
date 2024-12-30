@@ -1,6 +1,6 @@
 package com.atiurin.atp.farmserver.test.rest
 
-import com.atiurin.atp.farmcore.responses.GetConfigResponse
+import com.atiurin.atp.farmcore.api.response.GetConfigResponse
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith

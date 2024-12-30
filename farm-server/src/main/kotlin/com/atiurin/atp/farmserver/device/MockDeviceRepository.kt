@@ -1,10 +1,9 @@
 package com.atiurin.atp.farmserver.device
 
-import com.atiurin.atp.farmcore.models.DeviceState
-import com.atiurin.atp.farmcore.models.getPortInRange
-import com.atiurin.atp.farmcore.util.NetUtil
+import com.atiurin.atp.farmcore.entity.DeviceState
 import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.images.AndroidImagesConfiguration
+import com.atiurin.atp.farmserver.util.NetUtil
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 
@@ -26,8 +25,8 @@ class MockDeviceRepository @Autowired constructor(
         val dockerImg = androidImages.get(groupId)
         farmDevice.containerInfo = ContainerInfo(
             NetUtil.localhostName,
-            config.getPortInRange(),
-            config.getPortInRange(),
+            NetUtil.getFreePortInRange(farmConfig.get().startPort, farmConfig.get().endPort),
+            NetUtil.getFreePortInRange(farmConfig.get().startPort, farmConfig.get().endPort),
             dockerImg
         )
         farmDevice.state = DeviceState.READY

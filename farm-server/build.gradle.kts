@@ -33,6 +33,8 @@ distributions {
 repositories {
     mavenLocal()
     mavenCentral()
+    google()
+    maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
     maven("https://repo.spring.io/snapshot")
 }
 
@@ -50,7 +52,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation:3.2.5")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("com.github.ajalt.clikt:clikt:4.4.0")
-    implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
+    implementation(libs.kotlin.logging.jvm)
     implementation("io.micrometer:micrometer-core:1.11.5")
     implementation("io.micrometer:micrometer-registry-prometheus:1.11.5")
     implementation("org.jetbrains.exposed:exposed-core:0.50.0")

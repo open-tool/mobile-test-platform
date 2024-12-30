@@ -1,7 +1,7 @@
 package com.atiurin.atp.farmcliclient.test
 
 import com.atiurin.atp.farmcliclient.test.AssertionUtil.assertException
-import com.atiurin.atp.farmcore.util.NetUtil
+import com.atiurin.atp.farmserver.util.NetUtil
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.net.ServerSocket

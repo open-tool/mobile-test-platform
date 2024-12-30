@@ -1,7 +1,7 @@
 package com.atiurin.atp.farmserver.pool
 
-import com.atiurin.atp.farmcore.models.DeviceState
-import com.atiurin.atp.farmcore.models.DeviceStatus
+import com.atiurin.atp.farmcore.entity.DeviceState
+import com.atiurin.atp.farmcore.entity.DeviceStatus
 import com.atiurin.atp.farmserver.device.DeviceInfo
 
 interface DevicePool {

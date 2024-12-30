@@ -1,13 +1,15 @@
 package com.atiurin.atp.farmcliclient
 
-import com.atiurin.atp.farmclient.FarmClient
-import com.atiurin.atp.farmclient.FarmClientConfig
+import com.atiurin.atp.kmpclient.FarmClient
+import com.atiurin.atp.kmpclient.FarmClientConfig
 
 object FarmClientProvider {
     lateinit var client: FarmClient
 
     fun init(config: FarmClientConfig){
-        client = FarmClient(config)
+        client = FarmClient(config, doOnFailure = {
+            println("Failure: $it")
+        })
     }
 }
 

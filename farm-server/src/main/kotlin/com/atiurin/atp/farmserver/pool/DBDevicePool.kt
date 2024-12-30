@@ -1,8 +1,8 @@
 package com.atiurin.atp.farmserver.pool
 
-import com.atiurin.atp.farmcore.models.DeviceState
-import com.atiurin.atp.farmcore.models.DeviceStatus
-import com.atiurin.atp.farmcore.models.lowercaseName
+import com.atiurin.atp.farmcore.entity.DeviceState
+import com.atiurin.atp.farmcore.entity.DeviceStatus
+import com.atiurin.atp.farmcore.entity.lowercaseName
 import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.db.Devices
 import com.atiurin.atp.farmserver.device.ContainerInfo

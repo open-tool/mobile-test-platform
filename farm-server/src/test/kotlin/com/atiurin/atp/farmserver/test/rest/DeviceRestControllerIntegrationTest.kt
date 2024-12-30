@@ -1,6 +1,7 @@
 package com.atiurin.atp.farmserver.test.rest
 
-import com.atiurin.atp.farmcore.models.DeviceStatus
+import com.atiurin.atp.farmcore.api.model.toPoolDevice
+import com.atiurin.atp.farmcore.entity.DeviceStatus
 import com.atiurin.atp.farmserver.test.util.AssertUtils.awaitTrue
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
@@ -14,14 +15,14 @@ class DeviceRestControllerIntegrationTest : BaseRestControllerTest() {
     fun `create additional devices once acquire request`() {
         val currentConfig = configRestController.getCurrentConfig().config
         val group: String = currentConfig.keepAliveDevicesMap.keys.last()
-        val availableNow = deviceRestController.list().poolDevices.count {
+        val availableNow = deviceRestController.list().poolDevices.map { it.toPoolDevice() }.count {
             it.device.groupId == group && it.status == DeviceStatus.FREE
         }
         val expectedAmount = availableNow + 3
         val acquiredDevices = deviceRestController.acquire(expectedAmount, group, "Test")
         awaitTrue(
             valueProviderBlock = {
-                deviceRestController.list().poolDevices.count {
+                deviceRestController.list().poolDevices.map { it.toPoolDevice() }.count {
                     it.device.groupId == group && it.status == DeviceStatus.BUSY
                 }
             },

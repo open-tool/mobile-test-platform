@@ -1,6 +1,6 @@
 package com.atiurin.atp.farmserver.pool
 
-import com.atiurin.atp.farmcore.models.FarmMode
+import com.atiurin.atp.farmcore.entity.FarmMode
 import com.atiurin.atp.farmserver.config.FarmConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean

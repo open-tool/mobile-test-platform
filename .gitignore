@@ -279,7 +279,8 @@ sample/ios-app/Marathondevices
 
 apks/
 *.apk
-data/
+#data/
 marathon-report/
 local.properties
 .docker/
+.kotlin

@@ -1,11 +1,11 @@
 package com.atiurin.atp.farmserver.pool
 
-import com.atiurin.atp.farmcore.models.DeviceState
-import com.atiurin.atp.farmcore.models.DeviceStatus
-import com.atiurin.atp.farmcore.util.NetUtil
+import com.atiurin.atp.farmcore.entity.DeviceState
+import com.atiurin.atp.farmcore.entity.DeviceStatus
 import com.atiurin.atp.farmserver.device.ContainerInfo
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.FarmDevice
+import com.atiurin.atp.farmserver.util.NetUtil
 import java.util.UUID
 
 abstract class AbstractDevicePool: DevicePool {

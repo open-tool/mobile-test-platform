@@ -1,17 +1,15 @@
 package com.atiurin.atp.farmserver.device
 
-import com.atiurin.atp.farmcore.models.DeviceState
-import com.atiurin.atp.farmcore.models.getPortInRange
-import com.atiurin.atp.farmcore.util.NetUtil
+import com.atiurin.atp.farmcore.entity.DeviceState
 import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.images.AndroidImagesConfiguration
 import com.atiurin.atp.farmserver.logging.log
+import com.atiurin.atp.farmserver.util.NetUtil
 import com.github.dockerjava.api.model.Device
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Repository
 import org.testcontainers.utility.DockerImageName
-import java.util.UUID
 
 @Lazy
 @Repository
@@ -61,8 +59,8 @@ class TestContainersDeviceRepository @Autowired constructor(
         container.apply {
             log.info { "Start container" }
             withPrivilegedMode(true)
-            container.exposeAdbPort(farmConfig.get().getPortInRange())
-            container.exposeGrpcPort(farmConfig.get().getPortInRange())
+            container.exposeAdbPort(farmConfig.getPortInRange())
+            container.exposeGrpcPort(farmConfig.getPortInRange())
             start()
         }
     }

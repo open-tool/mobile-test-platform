@@ -2,7 +2,8 @@ package com.atiurin.atp.farmcliclient
 
 import com.atiurin.atp.farmcliclient.commands.AcquireCommand
 import com.atiurin.atp.farmcliclient.commands.MarathonTestRunCommand
-import com.atiurin.atp.farmclient.FarmClientConfig
+import com.atiurin.atp.kmpclient.FarmClientConfig
+import com.atiurin.atp.kmpclient.getFarmUrlFromString
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.associate
 import com.github.ajalt.clikt.parameters.options.flag
@@ -41,9 +42,12 @@ class FarmCliClient : CliktCommand() {
     override fun run() {
         println(allure)
         val group = groupId ?: api ?: throw RuntimeException("Specify -g or --group_id option.")
+        val farmUrls = urls?.map {
+            getFarmUrlFromString(it)
+        } ?: listOf(getFarmUrlFromString("http://localhost:8080"))
         FarmClientProvider.init(
             FarmClientConfig(
-                farmUrls = urls ?: listOf("http://localhost:8080"),
+                farmUrls = farmUrls,
                 userAgent = userAgent ?: getGitlabProjectId() ?: "test"
             )
         )
@@ -51,7 +55,6 @@ class FarmCliClient : CliktCommand() {
             Command.ACQUIRE -> {
                 AcquireCommand(deviceAmount, group).execute()
             }
-
             else -> runMarathon(group)
         }
     }
