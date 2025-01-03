@@ -12,12 +12,12 @@ class DeviceListViewModel(
     private val repository: DeviceRepository
 ) : ViewModel() {
     private val _state = mutableStateOf(
-        DeviceListScreenState(
+        DeviceListUiState(
             devices = listOf(),
             isLoading = true
         )
     )
-    val state: State<DeviceListScreenState>
+    val state: State<DeviceListUiState>
         get() = _state
     init {
         getDevices()
