@@ -46,8 +46,11 @@ In case your farm-server is hosted not on `http://localhost:8080` add `--url far
 
 ### Roadmap
 
-- Support ranges of host port
-- Runner Dockerfile
-- K8s Support
-- Multi-node infrastructure: master & nodes
+- Desktop-App: device list screen redesign 
+- Desktop-App: device details support device removing 
+- Desktop-App: Servers support 
+- Server: Log of device creation to manage problems
+- Server: Device creation timeout to avoid problems
+- Server: Gradient Cold start (to reduce host resources consumption)
+- K8s Support (?)
 

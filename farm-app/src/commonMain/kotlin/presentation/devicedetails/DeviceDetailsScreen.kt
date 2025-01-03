@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.dp
 import com.atiurin.atp.farmcore.entity.PoolDevice
 import domain.command.Command
 import domain.command.getPlatformCommands
-import presentation.ui.components.StateBadge
-import presentation.ui.components.StatusBadge
+import presentation.ui.components.badge.StateBadge
+import presentation.ui.components.badge.StatusBadge
 
 @Composable
 fun DeviceDetailsScreen(

@@ -1,4 +1,4 @@
-package presentation.ui.components
+package presentation.ui.components.badge
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -11,23 +11,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.atiurin.atp.farmcore.entity.DeviceState
-import presentation.ui.theme.Colors
 
 @Composable
-fun StateBadge(state: DeviceState) {
-    val color = when (state) {
-        DeviceState.READY -> Colors.State.Ready
-        else -> Colors.State.NotReady
-    }
+fun Badge(text: String, backgroundColor: Color, textColor: Color = Color.White){
     Box(
         modifier = Modifier
-            .background(color, shape = RoundedCornerShape(8.dp))
+            .background(backgroundColor, shape = RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         BasicText(
-            text = state.name,
-            style = TextStyle(color = Color.White, fontSize = 14.sp)
+            text = text,
+            style = TextStyle(color = textColor, fontSize = 14.sp)
         )
     }
 }

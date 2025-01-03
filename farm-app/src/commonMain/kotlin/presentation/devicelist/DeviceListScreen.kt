@@ -17,8 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.atiurin.atp.farmcore.entity.PoolDevice
-import presentation.ui.components.StateBadge
-import presentation.ui.components.StatusBadge
+import presentation.ui.components.badge.GroupBadge
+import presentation.ui.components.badge.StateBadge
+import presentation.ui.components.badge.StatusBadge
 
 
 @Composable
@@ -65,6 +66,8 @@ fun DeviceItemView(deviceItem: PoolDevice, onClick: (String) -> Unit) {
                 StateBadge(state = deviceItem.device.state)
                 Spacer(modifier = Modifier.width(8.dp))
                 StatusBadge(status = deviceItem.status)
+                Spacer(modifier = Modifier.width(8.dp))
+                GroupBadge(deviceItem.device.groupId)
             }
             HorizontalDivider(modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 4.dp))
         }
