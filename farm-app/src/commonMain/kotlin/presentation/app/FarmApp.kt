@@ -108,7 +108,7 @@ fun FarmApp(
                 val deviceListViewModel = viewModel { DeviceListViewModel(Container.deviceRepository) }
                 onRefresh.value = { deviceListViewModel.getDevices() }
                 DeviceListScreen(
-                    state = deviceListViewModel.state.value,
+                    viewModel = deviceListViewModel,
                     onItemClick = { uid ->
                         appViewModel.setDeviceItem(uid)
                         navController.navigate(AppScreen.DeviceDetails.name)

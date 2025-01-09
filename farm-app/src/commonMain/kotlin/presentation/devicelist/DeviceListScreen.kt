@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,10 +38,12 @@ import presentation.ui.components.badge.StatusBadge
 
 @Composable
 fun DeviceListScreen(
-    state: DeviceListUiState,
+    viewModel: DeviceListViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
     onItemClick: (String) -> Unit,
 ) {
-    if (state.isLoading) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    if (uiState.isLoading) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -52,68 +55,68 @@ fun DeviceListScreen(
             CircularProgressIndicator()
         }
     } else {
-        DeviceListTable(state.devices, onItemClick)
+        DeviceListTable(
+            uiState = uiState,
+            onItemClick = onItemClick,
+            onStatusChange = { viewModel.updateSelectedStatus(it) },
+            onStateChange = { viewModel.updateSelectedState(it) },
+            onGroupChange = { viewModel.updateSelectedGroup(it) },
+            onSortChange = { viewModel.updateSortField(it) }
+        )
     }
 }
 
 @Composable
 fun DeviceListTable(
-    devices: List<PoolDevice>,
+    uiState: DeviceListUiState,
     onItemClick: (String) -> Unit,
+    onStatusChange: (String) -> Unit,
+    onStateChange: (String) -> Unit,
+    onGroupChange: (String) -> Unit,
+    onSortChange: (SortField) -> Unit,
 ) {
     val noFilterOption = "All"
-    var selectedStatus by remember { mutableStateOf(noFilterOption) }
-    var selectedState by remember { mutableStateOf(noFilterOption) }
-    var selectedGroup by remember { mutableStateOf(noFilterOption) }
-    var sortBy by remember { mutableStateOf(SortField.Name) }
-    var sortAscending by remember { mutableStateOf(true) }
+    val filterDeviceStatus = mutableListOf(noFilterOption).apply { addAll(DeviceStatus.entries.map { it.name }) }
+    val filterDeviceState = mutableListOf(noFilterOption).apply { addAll(DeviceState.entries.map { it.name }) }
+    val filterGroups = mutableListOf(noFilterOption).apply { addAll(uiState.devices.map { it.device.groupId }.distinct().sorted()) }
 
-    val filterDeviceStatus = mutableListOf("All").apply { addAll(DeviceStatus.entries.map { it.name }) }
-    val filterDeviceState = mutableListOf("All").apply { addAll(DeviceState.entries.map { it.name }) }
-    val filterGroups = mutableListOf("All").apply { addAll( devices.map { it.device.groupId }.distinct().sorted()) }
-    val filteredDevices = devices
+    val filteredDevices = uiState.devices
         .filter { device ->
-            (selectedStatus == noFilterOption || device.status.name == selectedStatus) &&
-                    (selectedState == noFilterOption || device.device.state.name == selectedState) &&
-                    (selectedGroup == noFilterOption || device.device.groupId == selectedGroup)
+            (uiState.selectedStatus == noFilterOption || device.status.name == uiState.selectedStatus) &&
+                    (uiState.selectedState == noFilterOption || device.device.state.name == uiState.selectedState) &&
+                    (uiState.selectedGroup == noFilterOption || device.device.groupId == uiState.selectedGroup)
         }
         .sortedWith(
-            when (sortBy) {
-                SortField.Name -> if (sortAscending) compareBy { it.device.name } else compareByDescending { it.device.name }
-                SortField.Ip -> if (sortAscending) compareBy { it.device.ip } else compareByDescending { it.device.ip }
-                SortField.Status -> if (sortAscending) compareBy { it.status } else compareByDescending { it.status }
-                SortField.State -> if (sortAscending) compareBy { it.device.state } else compareByDescending { it.device.state }
-                SortField.Group -> if (sortAscending) compareBy { it.device.groupId } else compareByDescending { it.device.groupId }
+            when (uiState.sortBy) {
+                SortField.Name -> if (uiState.sortAscending) compareBy { it.device.name } else compareByDescending { it.device.name }
+                SortField.Ip -> if (uiState.sortAscending) compareBy { it.device.ip } else compareByDescending { it.device.ip }
+                SortField.Status -> if (uiState.sortAscending) compareBy { it.status } else compareByDescending { it.status }
+                SortField.State -> if (uiState.sortAscending) compareBy { it.device.state } else compareByDescending { it.device.state }
+                SortField.Group -> if (uiState.sortAscending) compareBy { it.device.groupId } else compareByDescending { it.device.groupId }
             }
         )
+
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
             FiltersRow(
+                uiState = uiState,
                 groupIds = filterGroups,
                 statuses = filterDeviceStatus,
                 states = filterDeviceState,
-                selectedStatus = selectedStatus,
-                selectedState = selectedState,
-                selectedGroup = selectedGroup,
-                onStatusChange = { selectedStatus = it },
-                onStateChange = { selectedState = it },
-                onGroupChange = { selectedGroup = it }
+                onStatusChange = onStatusChange,
+                onStateChange = onStateChange,
+                onGroupChange = onGroupChange
             )
         }
 
         item {
             TableHeader(
-                sortBy = sortBy,
-                sortAscending = sortAscending,
-                onSortChange = { field ->
-                    if (sortBy == field) sortAscending = !sortAscending
-                    else {
-                        sortBy = field
-                        sortAscending = true
-                    }
-                }
+                sortBy = uiState.sortBy,
+                sortAscending = uiState.sortAscending,
+                onSortChange = onSortChange
             )
         }
+
         items(filteredDevices) { device ->
             DeviceTableRow(device = device, onClick = onItemClick)
         }
@@ -122,12 +125,10 @@ fun DeviceListTable(
 
 @Composable
 fun FiltersRow(
+    uiState: DeviceListUiState,
     statuses: List<String>,
     states: List<String>,
     groupIds: List<String>,
-    selectedStatus: String,
-    selectedState: String,
-    selectedGroup: String?,
     onStatusChange: (String) -> Unit,
     onStateChange: (String) -> Unit,
     onGroupChange: (String) -> Unit,
@@ -142,19 +143,22 @@ fun FiltersRow(
             label = "Status",
             options = statuses,
             onOptionSelected = { onStatusChange(it) },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            selectedText = uiState.selectedStatus
         )
         DropdownMenuFilter(
             label = "State",
             options = states,
             onOptionSelected = { onStateChange(it) },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            selectedText = uiState.selectedState
         )
         DropdownMenuFilter(
             label = "Group",
             options = groupIds,
             onOptionSelected = { onGroupChange(it) },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            selectedText = uiState.selectedGroup
         )
     }
 }
@@ -219,9 +223,9 @@ fun <T> DropdownMenuFilter(
     options: List<T>,
     onOptionSelected: (T) -> Unit,
     modifier: Modifier,
+    selectedText: String,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf("All") }
 
     val icon = if (expanded)
         Icons.Filled.KeyboardArrowUp
@@ -247,8 +251,8 @@ fun <T> DropdownMenuFilter(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = selectedText.ifEmpty { label },
-                    color = if (selectedText.isEmpty()) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    text = selectedText,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.weight(1f)
                 )
@@ -268,7 +272,6 @@ fun <T> DropdownMenuFilter(
                 DropdownMenuItem(
                     text = { Text(text = option.toString()) },
                     onClick = {
-                        selectedText = option.toString()
                         expanded = false
                         onOptionSelected(option)
                     }
