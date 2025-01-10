@@ -8,6 +8,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,6 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -106,6 +108,17 @@ fun FarmApp(
             }
             composable(route = AppScreen.DeviceList.name) {
                 val deviceListViewModel = viewModel { DeviceListViewModel(Container.deviceRepository) }
+                DisposableEffect(Unit) {
+                    val callback = NavController.OnDestinationChangedListener { _, destination, _ ->
+                        if (destination.route == AppScreen.DeviceList.name) {
+                            deviceListViewModel.getDevices()
+                        }
+                    }
+                    navController.addOnDestinationChangedListener(callback)
+                    onDispose {
+                        navController.removeOnDestinationChangedListener(callback)
+                    }
+                }
                 onRefresh.value = { deviceListViewModel.getDevices() }
                 DeviceListScreen(
                     viewModel = deviceListViewModel,

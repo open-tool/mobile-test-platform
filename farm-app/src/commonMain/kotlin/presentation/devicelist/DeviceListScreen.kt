@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -78,7 +78,8 @@ fun DeviceListTable(
     val noFilterOption = "All"
     val filterDeviceStatus = mutableListOf(noFilterOption).apply { addAll(DeviceStatus.entries.map { it.name }) }
     val filterDeviceState = mutableListOf(noFilterOption).apply { addAll(DeviceState.entries.map { it.name }) }
-    val filterGroups = mutableListOf(noFilterOption).apply { addAll(uiState.devices.map { it.device.groupId }.distinct().sorted()) }
+    val filterGroups =
+        mutableListOf(noFilterOption).apply { addAll(uiState.devices.map { it.device.groupId }.distinct().sorted()) }
 
     val filteredDevices = uiState.devices
         .filter { device ->
@@ -117,8 +118,8 @@ fun DeviceListTable(
             )
         }
 
-        items(filteredDevices) { device ->
-            DeviceTableRow(device = device, onClick = onItemClick)
+        itemsIndexed(filteredDevices) { index, device ->
+            DeviceTableRow(index = index+1, device = device, onClick = onItemClick)
         }
     }
 }
@@ -175,8 +176,9 @@ fun TableHeader(
             .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        SortableColumnHeader("Name", SortField.Name, sortBy, sortAscending, onSortChange, Modifier.weight(1f))
-        SortableColumnHeader("IP", SortField.Ip, sortBy, sortAscending, onSortChange, Modifier.weight(1f))
+        Text("#", modifier = Modifier.weight(0.3f).padding(start = 8.dp))
+        SortableColumnHeader("Name", SortField.Name, sortBy, sortAscending, onSortChange, Modifier.weight(2f))
+        SortableColumnHeader("IP", SortField.Ip, sortBy, sortAscending, onSortChange, Modifier.weight(2f))
         SortableColumnHeader("Status", SortField.Status, sortBy, sortAscending, onSortChange, Modifier.weight(1f))
         SortableColumnHeader("State", SortField.State, sortBy, sortAscending, onSortChange, Modifier.weight(1f))
         SortableColumnHeader("Group", SortField.Group, sortBy, sortAscending, onSortChange, Modifier.weight(1f))
@@ -201,7 +203,7 @@ fun SortableColumnHeader(
 }
 
 @Composable
-fun DeviceTableRow(device: PoolDevice, onClick: (String) -> Unit) {
+fun DeviceTableRow(index: Int, device: PoolDevice, onClick: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -209,11 +211,12 @@ fun DeviceTableRow(device: PoolDevice, onClick: (String) -> Unit) {
             .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(device.device.name, modifier = Modifier.weight(1f))
-        Text("${device.device.ip}:${device.device.adbConnectPort}", modifier = Modifier.weight(1f))
-        Box(modifier = Modifier.weight(1f)) { StatusBadge(device.status) }
-        Box(modifier = Modifier.weight(1f)) { StateBadge(device.device.state) }
-        Text(device.device.groupId, modifier = Modifier.weight(1f))
+        Text(index.toString(), modifier = Modifier.weight(0.3f).padding(8.dp))
+        Text(device.device.name, modifier = Modifier.weight(2f).padding(8.dp))
+        Text("${device.device.ip}:${device.device.adbConnectPort}", modifier = Modifier.weight(2f).padding(8.dp))
+        Box(modifier = Modifier.weight(1f).padding(8.dp)) { StatusBadge(device.status) }
+        Box(modifier = Modifier.weight(1f).padding(8.dp)) { StateBadge(device.device.state) }
+        Text(device.device.groupId, modifier = Modifier.weight(1f).padding(8.dp))
     }
 }
 
