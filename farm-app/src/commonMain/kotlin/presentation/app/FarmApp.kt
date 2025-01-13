@@ -3,13 +3,12 @@ package presentation.app
 import AppViewModel
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,6 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -78,7 +78,7 @@ fun FarmApp(
             startDestination = AppScreen.Welcome.name,
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+//                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
         ) {
             composable(route = AppScreen.Welcome.name) {
@@ -107,11 +107,21 @@ fun FarmApp(
                 ServersScreen()
             }
             composable(route = AppScreen.DeviceList.name) {
-                println("Navigate to device list")
                 val deviceListViewModel = viewModel { DeviceListViewModel(Container.deviceRepository) }
+                DisposableEffect(Unit) {
+                    val callback = NavController.OnDestinationChangedListener { _, destination, _ ->
+                        if (destination.route == AppScreen.DeviceList.name) {
+                            deviceListViewModel.getDevices()
+                        }
+                    }
+                    navController.addOnDestinationChangedListener(callback)
+                    onDispose {
+                        navController.removeOnDestinationChangedListener(callback)
+                    }
+                }
                 onRefresh.value = { deviceListViewModel.getDevices() }
                 DeviceListScreen(
-                    state = deviceListViewModel.state.value,
+                    viewModel = deviceListViewModel,
                     onItemClick = { uid ->
                         appViewModel.setDeviceItem(uid)
                         navController.navigate(AppScreen.DeviceDetails.name)

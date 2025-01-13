@@ -13,9 +13,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun Badge(text: String, backgroundColor: Color, textColor: Color = Color.White){
+fun Badge(text: String, backgroundColor: Color, textColor: Color = Color.White, modifier: Modifier = Modifier){
     Box(
-        modifier = Modifier
+        modifier = modifier
             .background(backgroundColor, shape = RoundedCornerShape(8.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
