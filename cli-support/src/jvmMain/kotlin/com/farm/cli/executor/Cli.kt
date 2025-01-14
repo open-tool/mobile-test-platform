@@ -20,7 +20,7 @@ object Cli {
     fun execute(
         cmdLine: String,
         envs: Map<String, String> = emptyMap(),
-        timeoutMs: Long = 30_000_000L
+        timeoutMs: Long = 5 * 60_000L
     ): CliCommandResult {
         var executionTime = 0L
         var exitCode = 0

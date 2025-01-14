@@ -6,8 +6,11 @@ import com.atiurin.atp.farmcliclient.adb.AdbServerImpl
 import com.atiurin.atp.farmcliclient.log
 import com.atiurin.atp.farmcliclient.services.DeviceConnectionService
 import com.atiurin.atp.farmcliclient.services.FarmDeviceConnectionService
+import com.atiurin.atp.farmcore.entity.Device
 import com.atiurin.atp.farmserver.util.NetUtil
 import com.farm.cli.executor.Cli
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.exec.environment.EnvironmentUtils
 
 
@@ -18,9 +21,9 @@ class MarathonTestRunCommand(
     private val marathonConfigFilePath: String? = null,
     private val adbPortVariable: String? = null,
     private val marathonCommand: String? = null,
+    private val deviceConnectionTimeoutMs: Long = 5 * 60_000,
     envs: Map<String, String> = mutableMapOf()
 ) : Command {
-
     private val environments =
         envs.toMutableMap().apply { this.putAll(EnvironmentUtils.getProcEnvironment()) }
 
@@ -36,18 +39,28 @@ class MarathonTestRunCommand(
     }
 
     private fun buildCliCommand(): String {
-        val result = StringBuilder()
-        if (isAllure) result.append("allurectl watch -- ")
-        marathonCommand?.let { result.append("$it ") } ?: result.append("marathon ")
-        marathonConfigFilePath?.let { result.append("-m $marathonConfigFilePath ") }
-        log.info { "Cli command = '$result'" }
-        return result.toString()
+        val cmd = StringBuilder()
+        if (isAllure) cmd.append("allurectl watch -- ")
+        marathonCommand?.let { cmd.append("$it ") } ?: cmd.append("marathon ")
+        marathonConfigFilePath?.let { cmd.append("-m $marathonConfigFilePath ") }
+        log.info { "Cli command = '$cmd'" }
+        return cmd.toString()
     }
 
     override fun execute(): Boolean {
         val adbServer = runAdbServer()
-        val connectionService: DeviceConnectionService = FarmDeviceConnectionService(FarmClientProvider.client, adbServer)
+        val channel = Channel<Device>()
+        val connectionService: DeviceConnectionService = FarmDeviceConnectionService(
+            farmClient = FarmClientProvider.client,
+            adbServer = adbServer,
+            channel = channel,
+            deviceConnectionTimeoutMs = deviceConnectionTimeoutMs)
         connectionService.connect(deviceAmount, groupId)
+        runBlocking {
+            // wait 1st device to be connected
+            val firstDevice = channel.receive()
+            log.info { "1st device connected: $firstDevice, start marathon test run" }
+        }
         val result = Cli.execute(buildCliCommand(), environments)
         log.info { "marathon cli command success = ${result.success}, message = ${result.message}" }
         connectionService.disconnect()

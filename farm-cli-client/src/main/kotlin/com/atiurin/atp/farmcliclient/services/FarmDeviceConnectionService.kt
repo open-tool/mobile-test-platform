@@ -8,6 +8,7 @@ import com.atiurin.atp.farmcore.entity.toDevices
 import com.atiurin.atp.kmpclient.FarmClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -15,16 +16,25 @@ import kotlinx.coroutines.runBlocking
 class FarmDeviceConnectionService(
     private val farmClient: FarmClient,
     private val adbServer: AdbServer,
+    private val channel: Channel<Device>,
+    private val deviceConnectionTimeoutMs: Long
 ) : DeviceConnectionService {
     private val devices = mutableListOf<Device>()
 
     override fun connect(amount: Int, groupId: String) {
+        val scope = CoroutineScope(Dispatchers.IO)
         runBlocking {
             devices.addAll(farmClient.acquire(amount, groupId))
+            if (devices.isEmpty()) throw RuntimeException("No devices available")
         }
-        if (devices.isEmpty()) throw RuntimeException("No devices available")
-        adbServer.connect(devices.filter { it.state == DeviceState.READY })
-        val scope = CoroutineScope(Dispatchers.IO)
+        devices.filter { it.state == DeviceState.READY }.forEach { device ->
+            scope.launch {
+                adbServer.connect(device, timeoutMs = deviceConnectionTimeoutMs).onSuccess {
+                    channel.send(device)
+                }
+            }
+        }
+
         scope.launch { connectReadyDevices() }
     }
 
@@ -45,7 +55,9 @@ class FarmDeviceConnectionService(
             devices.removeIf { it.id == updatedDevice.id }
             devices.add(updatedDevice)
             deviceConnectionScope.launch {
-                adbServer.connect(updatedDevice)
+                adbServer.connect(updatedDevice).onSuccess {
+                    channel.send(updatedDevice)
+                }
             }
         }
         if (devices.count { it.state.isPreparing() } > 0) {

@@ -12,12 +12,13 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
+import com.github.ajalt.clikt.parameters.types.long
 import org.apache.commons.exec.environment.EnvironmentUtils
 import kotlin.system.exitProcess
 
 var log = Log()
 
-class Log() {
+class Log {
     fun info(block: () -> Any?) = println(block())
     fun error(block: () -> Any?) = println(block())
 }
@@ -38,6 +39,8 @@ class FarmCliClient : CliktCommand() {
     val environments: Map<String, String> by option("-e", "--env").associate()
     val marathonAdbPortVariable by option("-mapv", "--marathon_adb_port_variable")
     val userAgent by option("-ua", "--user_agent")
+    val deviceConnectionTimeoutMs by option("-dct", "--device_connection_timeout_ms").long()
+
 
     override fun run() {
         println(allure)
@@ -45,6 +48,7 @@ class FarmCliClient : CliktCommand() {
         val farmUrls = urls?.map {
             getFarmUrlFromString(it)
         } ?: listOf(getFarmUrlFromString("http://localhost:8080"))
+        val deviceTimeoutMs = deviceConnectionTimeoutMs ?: (5 * 60_000L)
         FarmClientProvider.init(
             FarmClientConfig(
                 farmUrls = farmUrls,
@@ -53,25 +57,22 @@ class FarmCliClient : CliktCommand() {
         )
         when (command) {
             Command.ACQUIRE -> {
-                AcquireCommand(deviceAmount, group).execute()
+                AcquireCommand(deviceAmount, group, deviceConnectionTimeoutMs = deviceTimeoutMs).execute()
             }
-            else -> runMarathon(group)
+            else -> {
+                val isSuccess = MarathonTestRunCommand(
+                    deviceAmount = deviceAmount,
+                    groupId = group,
+                    isAllure = allure,
+                    marathonConfigFilePath = marathonConfigFilePath,
+                    adbPortVariable = marathonAdbPortVariable,
+                    marathonCommand = marathonCommand,
+                    envs = environments,
+                    deviceConnectionTimeoutMs = deviceTimeoutMs
+                ).execute()
+                if (!isSuccess) exitProcess(1)
+            }
         }
-    }
-
-    fun runMarathon(group: String) {
-        val envsToPrint = environments.filter { !it.key.contains("key", ignoreCase = true) }
-        log.info { "Run marathon launch with environment $envsToPrint" }
-        val isSuccess = MarathonTestRunCommand(
-            deviceAmount = deviceAmount,
-            groupId = group,
-            isAllure = allure,
-            marathonConfigFilePath = marathonConfigFilePath,
-            adbPortVariable = marathonAdbPortVariable,
-            marathonCommand = marathonCommand,
-            envs = environments
-        ).execute()
-        if (!isSuccess) exitProcess(1)
     }
 
     fun getGitlabProjectId(): String? {
