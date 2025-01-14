@@ -7,7 +7,7 @@ data class PoolDevice (
     val userAgent: String? = null,
     var status: DeviceStatus = DeviceStatus.FREE,
     var lastPingTimestampSec: Long = 0L,
-    val busyTimestampSec: Long = 0L,
+    val statusTimestampSec: Long = 0L,
     var desc : String? = null
 )
 
@@ -16,7 +16,7 @@ fun PoolDevice.toApiPoolDevice() = ApiPoolDevice(
     userAgent = this.userAgent,
     status = this.status.name,
     lastPingTimestampSec = this.lastPingTimestampSec,
-    busyTimestampSec = this.busyTimestampSec,
+    statusTimestampSec = this.statusTimestampSec,
     desc = this.desc
 )
 

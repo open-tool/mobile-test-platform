@@ -9,7 +9,8 @@ data class Device(
     val dockerImage: String,
     val ip: String,
     val adbConnectPort: Int,
-    val state: DeviceState
+    val state: DeviceState,
+    val stateTimestampSec: Long,
 )
 
 fun Device.toApiDevice() = ApiDevice(
@@ -19,7 +20,8 @@ fun Device.toApiDevice() = ApiDevice(
     dockerImage = this.dockerImage,
     ip = this.ip,
     adbConnectPort = this.adbConnectPort,
-    state = this.state.name
+    state = this.state.name,
+    stateTimestampSec = this.stateTimestampSec
 )
 
 fun List<Device>.toApiDevices() : List<ApiDevice> = this.map { it.toApiDevice() }

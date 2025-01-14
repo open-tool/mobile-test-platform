@@ -6,6 +6,7 @@ import com.atiurin.atp.farmserver.device.ContainerInfo
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.FarmDevice
 import com.atiurin.atp.farmserver.util.NetUtil
+import com.atiurin.atp.farmserver.util.nowSec
 import java.util.UUID
 
 abstract class AbstractDevicePool: DevicePool {
@@ -17,9 +18,11 @@ abstract class AbstractDevicePool: DevicePool {
             id = UUID.randomUUID().toString(),
             deviceInfo = deviceInfo,
             state = DeviceState.CREATING,
+            stateTimestampSec = nowSec(),
             containerInfo = ContainerInfo(ip, 0, 0, "")
         ),
         status = DeviceStatus.FREE,
+        statusTimestampSec = nowSec(),
         desc = "Creating new device"
     )
 }

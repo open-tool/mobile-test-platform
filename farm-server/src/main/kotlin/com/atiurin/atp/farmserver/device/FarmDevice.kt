@@ -7,6 +7,7 @@ import org.testcontainers.containers.GenericContainer
 data class FarmDevice(
     val id: String,
     var state: DeviceState,
+    var stateTimestampSec: Long,
     val deviceInfo: DeviceInfo,
     var containerInfo: ContainerInfo,
     var container: GenericContainer<Nothing>? = null
@@ -19,7 +20,8 @@ fun FarmDevice.toDevice() = Device(
     dockerImage = this.containerInfo.dockerImage,
     ip = this.containerInfo.ip,
     adbConnectPort = this.containerInfo.adbPort,
-    state = this.state
+    state = this.state,
+    stateTimestampSec = this.stateTimestampSec
 )
 
 data class DeviceInfo(

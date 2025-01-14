@@ -6,6 +6,7 @@ import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.DeviceRepository
 import com.atiurin.atp.farmserver.logging.log
+import com.atiurin.atp.farmserver.util.nowSec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -85,7 +86,7 @@ abstract class CachedDevicePool : AbstractDevicePool() {
             deviceToBeAcquired.forEach {
                 it.userAgent = userAgent
                 it.status = DeviceStatus.BUSY
-                it.busyTimestampSec = Instant.now().epochSecond
+                it.statusTimestampSec = nowSec()
             }
             log.info { "Acquired devices by userAgent: $userAgent: $deviceToBeAcquired" }
             return deviceToBeAcquired
@@ -132,7 +133,7 @@ abstract class CachedDevicePool : AbstractDevicePool() {
                 poolDevice.apply {
                     userAgent = null
                     status = DeviceStatus.FREE
-                    busyTimestampSec = 0L
+                    statusTimestampSec = 0L
                 }
             }
         }

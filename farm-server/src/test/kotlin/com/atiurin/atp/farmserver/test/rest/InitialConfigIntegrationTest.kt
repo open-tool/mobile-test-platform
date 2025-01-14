@@ -22,7 +22,7 @@ class InitialConfigIntegrationTest : BaseRestControllerTest() {
         println(config)
         SoftAssertions().apply {
             assertThat(config.isMock).isTrue
-            assertThat(config.deviceBusyTimeoutSec).isEqualTo(initialConfig.deviceBusyTimeoutSec)
+            assertThat(config.busyDeviceTimeoutSec).isEqualTo(initialConfig.deviceBusyTimeoutSec)
             assertThat(config.keepAliveDevicesMap.isNotEmpty()).isTrue
             assertThat(config.maxDevicesAmount).isEqualTo(initialConfig.maxDevicesAmount)
             initialConfig.keepAliveDevicesMap.forEach { (groupId, amount) ->

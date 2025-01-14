@@ -16,7 +16,7 @@ data class InitialConfig(
 fun InitialConfig.toConfig(farmMode: FarmMode = FarmMode.LOCAL) = Config(
     maxDevicesAmount = this.maxDevicesAmount,
     keepAliveDevicesMap = this.keepAliveDevicesMap.toMutableMap(),
-    deviceBusyTimeoutSec = this.deviceBusyTimeoutSec,
+    busyDeviceTimeoutSec = this.deviceBusyTimeoutSec,
     isMock = this.isMock,
     startPort = this.startPort,
     endPort = this.endPort,
