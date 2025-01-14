@@ -1,14 +1,9 @@
 package com.atiurin.atp.farmserver.test.rest
 
-import com.atiurin.atp.farmserver.config.FarmConfig
-import com.atiurin.atp.farmserver.rest.ConfigRestController
-import com.atiurin.atp.farmserver.rest.DeviceRestController
-import com.atiurin.atp.farmserver.test.util.AssertUtils.awaitTrue
 import org.assertj.core.api.Assertions
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringRunner
@@ -48,12 +43,21 @@ class ConfigRestControllerIntegrationTest : BaseRestControllerTest() {
     }
 
     @Test
-    fun `update device busy timeout`() {
+    fun `update busy device timeout`() {
         val currentConfig = configRestController.getCurrentConfig().config
-        val expectedTimeout = currentConfig.deviceBusyTimeoutSec + 300
-        configRestController.updateDeviceBusyTimeout(expectedTimeout)
+        val expectedTimeout = currentConfig.busyDeviceTimeoutSec + 300
+        configRestController.updateBusyDeviceTimeout(expectedTimeout)
         val resultConfig = configRestController.getCurrentConfig().config
-        Assertions.assertThat(resultConfig.deviceBusyTimeoutSec).isEqualTo(expectedTimeout)
+        Assertions.assertThat(resultConfig.busyDeviceTimeoutSec).isEqualTo(expectedTimeout)
+    }
+
+    @Test
+    fun `update creating device timeout`() {
+        val currentConfig = configRestController.getCurrentConfig().config
+        val expectedTimeout = currentConfig.creatingDeviceTimeoutSec + 300
+        configRestController.updateCreatingDeviceTimeout(expectedTimeout)
+        val resultConfig = configRestController.getCurrentConfig().config
+        Assertions.assertThat(resultConfig.creatingDeviceTimeoutSec).isEqualTo(expectedTimeout)
     }
 
     @Test

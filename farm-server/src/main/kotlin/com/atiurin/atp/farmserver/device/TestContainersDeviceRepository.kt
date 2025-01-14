@@ -5,6 +5,7 @@ import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.images.AndroidImagesConfiguration
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.util.NetUtil
+import com.atiurin.atp.farmserver.util.nowSec
 import com.github.dockerjava.api.model.Device
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Lazy
@@ -39,6 +40,7 @@ class TestContainersDeviceRepository @Autowired constructor(
         farmDevice.containerInfo = containerInfo
         farmDevice.container = container
         farmDevice.state = DeviceState.READY
+        farmDevice.stateTimestampSec = nowSec()
         containerMap[farmDevice.id] = farmDevice
         return farmDevice
     }

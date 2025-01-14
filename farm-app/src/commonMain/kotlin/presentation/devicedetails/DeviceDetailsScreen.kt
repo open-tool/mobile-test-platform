@@ -90,7 +90,7 @@ fun DeviceDetailsView(poolDevice: PoolDevice) {
         PropertyItem("image", poolDevice.device.dockerImage)
         PropertyItem("desc", poolDevice.desc)
         PropertyItem("userAgent", poolDevice.userAgent)
-        PropertyItem("busy time", poolDevice.busyTimestampSec.toString())
+        PropertyItem("busy time", poolDevice.statusTimestampSec.toString())
         PropertyItem("last ping", poolDevice.lastPingTimestampSec.toString())
     }
 }

@@ -69,7 +69,8 @@ open class BaseRestControllerTest {
                 busyDevicesMonitorDelay = 1000,
                 serverMonitorDelay = 1000,
                 deviceNeedToDeleteMonitorDelay = 1000,
-                deviceNeedToCreateMonitorDelay = 1000
+                deviceNeedToCreateMonitorDelay = 1000,
+                creatingDeviceTimeoutSec = 1000
             )
 
             override fun set(block: Config.() -> Unit) {

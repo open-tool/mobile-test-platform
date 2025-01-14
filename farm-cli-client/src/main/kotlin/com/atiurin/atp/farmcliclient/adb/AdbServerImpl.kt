@@ -4,6 +4,7 @@ import com.atiurin.atp.farmcliclient.log
 import com.atiurin.atp.farmcore.entity.Device
 import com.farm.cli.executor.Cli
 
+@Suppress("ThrowableNotThrown")
 class AdbServerImpl(override val port: Int) : AdbServer {
 
     private val portCmdPart = if (port > 0) "-P $port" else ""
@@ -24,10 +25,21 @@ class AdbServerImpl(override val port: Int) : AdbServer {
         }
     }
 
-    override suspend fun connect(device: Device) {
+    override suspend fun connect(device: Device, timeoutMs: Long) : Result<Device> {
         log.info { "Connect device: $device" }
-        Cli.execute("adb $portCmdPart connect ${device.ip}:${device.adbConnectPort}")
-        Cli.execute("adb $portCmdPart -s ${device.ip}:${device.adbConnectPort} wait-for-device")
+        val connectResult = Cli.execute("adb $portCmdPart connect ${device.ip}:${device.adbConnectPort}", timeoutMs = timeoutMs)
+        val result = if (connectResult.success){
+            val waitForDeviceResult = Cli.execute("adb $portCmdPart -s ${device.ip}:${device.adbConnectPort} wait-for-device", timeoutMs = timeoutMs)
+            if (waitForDeviceResult.success){
+                log.info { "Device ${device.id} with ip ${device.ip}:${device.adbConnectPort} connected successfully" }
+                Result.success(device)
+            } else {
+                Result.failure(RuntimeException("Wait for device failed: ${waitForDeviceResult.message}"))
+            }
+        }else{
+            Result.failure(RuntimeException("Connect failed: ${connectResult.message}"))
+        }
+        return result
     }
 
     override fun disconnect(devices: List<Device>) {

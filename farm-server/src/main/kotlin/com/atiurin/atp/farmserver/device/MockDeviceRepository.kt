@@ -29,7 +29,7 @@ class MockDeviceRepository @Autowired constructor(
             NetUtil.getFreePortInRange(farmConfig.get().startPort, farmConfig.get().endPort),
             dockerImg
         )
-        farmDevice.state = DeviceState.READY
+        farmDevice.state = newDeviceState
         containerMap[farmDevice.id] = farmDevice
         return farmDevice
     }
@@ -41,4 +41,8 @@ class MockDeviceRepository @Autowired constructor(
     override fun isDeviceAlive(deviceId: String): Boolean = containerMap.any { it.key == deviceId }
 
     override fun getDevices(): List<FarmDevice> = containerMap.values.toList()
+
+    companion object {
+        var newDeviceState = DeviceState.READY
+    }
 }

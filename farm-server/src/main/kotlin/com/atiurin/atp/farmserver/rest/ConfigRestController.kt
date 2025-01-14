@@ -49,18 +49,29 @@ class ConfigRestController  @Autowired constructor(
         }
     }
 
-    @PostMapping("/device-busy-timeout")
-    fun updateDeviceBusyTimeout(
+    @PostMapping("/busy-device-timeout")
+    fun updateBusyDeviceTimeout(
         @RequestParam("Timeout in seconds") timeout: Long
     ): BaseResponse {
         return processRequest {
             farmConfig.set {
-                deviceBusyTimeoutSec = timeout
+                busyDeviceTimeoutSec = timeout
             }
             BaseResponse()
         }
     }
 
+    @PostMapping("/creating-device-timeout")
+    fun updateCreatingDeviceTimeout(
+        @RequestParam("Timeout in seconds") timeout: Long
+    ): BaseResponse {
+        return processRequest {
+            farmConfig.set {
+                creatingDeviceTimeoutSec = timeout
+            }
+            BaseResponse()
+        }
+    }
     @PostMapping("/android-image")
     fun updateGroupImage(
         @RequestParam groupId: String,

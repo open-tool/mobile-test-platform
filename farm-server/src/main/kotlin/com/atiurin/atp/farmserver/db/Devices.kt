@@ -13,8 +13,9 @@ object Devices : Table() {
     val dockerImage: Column<String> = varchar("dockerImage", length = 200)
     val userAgent: Column<String?> = varchar("userAgent", length = 1000).nullable().default(null)
     val desc: Column<String?> = varchar("desc", length = 1000).nullable()
-    val busyTimestampSec: Column<Long> = long("busyTimestamp").default(0L)
     val lastPingTimestampSec: Column<Long> = long("lastPingTimestamp").default(0L)
     val state: Column<String> = varchar("state",50)
     val status: Column<String> = varchar("status",50)
+    val statusTimestampSec: Column<Long> = long("statusTimestamp").default(0L)
+    val stateTimestampSec: Column<Long> = long("stateTimestamp").default(0L)
 }

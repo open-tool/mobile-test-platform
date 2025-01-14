@@ -46,6 +46,7 @@ class Monitor @Autowired constructor(
         scope.launch { monitorLocalServerDevicePool() }
         scope.launch { monitorDevicesNeedToCreate() }
         scope.launch { monitorLocalDeviceNeedToDelete() }
+        scope.launch { monitorCreatingDevices() }
     }
 
     suspend fun monitorLocalServerDevicePool() {
@@ -89,17 +90,35 @@ class Monitor @Autowired constructor(
         }
     }
 
+    suspend fun monitorCreatingDevices(){
+        log.info { "Launch monitorCreatingDevices" }
+        while (true){
+            val timeout = farmConfig.get().creatingDeviceTimeoutSec
+            runCatching {
+                devicePool.all().filter { it.device.state == DeviceState.CREATING }.forEach { poolDevice ->
+                    val timeoutTime =
+                        Instant.ofEpochSecond(poolDevice.device.stateTimestampSec).plusSeconds(timeout)
+                    val now = Instant.now()
+                    if (now.isAfter(timeoutTime)) {
+                        log.info { "Device ${poolDevice.device.id} stacked in creating state. Remove it. Timeout = $timeout, timeoutTime = ${timeoutTime.epochSecond}, now = ${now.epochSecond}" }
+                        devicePool.remove(poolDevice.device.id)
+                    }
+                }
+            }
+        }
+    }
+
     suspend fun monitorBusyDevices() {
         log.info { "Launch monitorBusyDevices" }
         while (true) {
-            val timeout = farmConfig.get().deviceBusyTimeoutSec
+            val timeout = farmConfig.get().busyDeviceTimeoutSec
             runCatching {
                 devicePool.all().filter { it.status == DeviceStatus.BUSY }.forEach { poolDevice ->
                     val timeoutTime =
-                        Instant.ofEpochSecond(poolDevice.busyTimestampSec).plusSeconds(timeout)
+                        Instant.ofEpochSecond(poolDevice.statusTimestampSec).plusSeconds(timeout)
                     val now = Instant.now()
                     if (now.isAfter(timeoutTime)) {
-                        log.info { "Release device ${poolDevice.device.id}. timeout = $timeout, timeoutTime = ${timeoutTime.epochSecond}, now = ${now.epochSecond}, busyTimestamp = ${poolDevice.busyTimestampSec}" }
+                        log.info { "Release device ${poolDevice.device.id}. timeout = $timeout, timeoutTime = ${timeoutTime.epochSecond}, now = ${now.epochSecond}, busyTimestamp = ${poolDevice.statusTimestampSec}" }
                         devicePool.release(poolDevice.device.id)
                     }
                 }

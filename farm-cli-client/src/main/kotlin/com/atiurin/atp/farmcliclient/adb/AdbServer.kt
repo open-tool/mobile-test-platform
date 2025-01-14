@@ -7,7 +7,7 @@ interface AdbServer {
     fun start()
     fun kill()
     fun connect(devices: List<Device>)
-    suspend fun connect(device: Device)
+    suspend fun connect(device: Device, timeoutMs: Long = 5 * 60_000) : Result<Device>
     fun disconnect(devices: List<Device>)
     fun printDevices()
 }
