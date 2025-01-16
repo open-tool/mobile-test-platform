@@ -51,7 +51,6 @@ class Monitor @Autowired constructor(
         scope.launch { monitorCreatingDevices() }
     }
 
-
     suspend fun monitorLocalServerDevicePoolToCreateRequired() {
         val creatingDeviceQueue = LinkedBlockingQueue<FarmPoolDevice>()
         while (true) {
@@ -63,12 +62,19 @@ class Monitor @Autowired constructor(
                         farmPoolDevice.device.deviceInfo.groupId == groupId
                                 && farmPoolDevice.device.containerInfo.ip == localServerRepository.ip
                     }
-                    if (aliveDevicesAmount < amount && creatingDeviceQueue.size < amount - aliveDevicesAmount) {
-                        val devicesToCreate = amount - aliveDevicesAmount - creatingDeviceQueue.size
+                    val needToCreateAmount = amount - aliveDevicesAmount
+                    val maxAmountAvailableToCreate =
+                        farmConfig.get().maxDeviceCreationBatchSize - creatingDeviceQueue.size
+
+                    if (needToCreateAmount > 0 && maxAmountAvailableToCreate > 0) {
+                        val devicesToCreate = if (needToCreateAmount > maxAmountAvailableToCreate) {
+                            maxAmountAvailableToCreate
+                        } else {
+                            needToCreateAmount
+                        }
+                        log.info { "Group $groupId: alive devices = $aliveDevicesAmount, need to create = $needToCreateAmount, max available to create = $maxAmountAvailableToCreate, queue size = ${creatingDeviceQueue.size}" }
                         val devices = devicePool.create(
-                            amount = if (devicesToCreate > farmConfig.get().maxDeviceCreationBatchSize) {
-                                farmConfig.get().maxDeviceCreationBatchSize
-                            } else devicesToCreate,
+                            amount = devicesToCreate,
                             deviceInfo = DeviceInfo("AutoLaunched $groupId", groupId),
                             creatingDeviceQueue = creatingDeviceQueue
                         )
@@ -115,7 +121,6 @@ class Monitor @Autowired constructor(
             delay(farmConfig.get().devicePoolMonitorDelay * 2)
         }
     }
-
 
     suspend fun monitorCreatingDevices() {
         log.info { "Launch monitorCreatingDevices" }
