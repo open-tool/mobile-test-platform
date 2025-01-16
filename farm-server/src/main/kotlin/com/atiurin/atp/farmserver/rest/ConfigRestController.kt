@@ -2,6 +2,7 @@ package com.atiurin.atp.farmserver.rest
 
 import com.atiurin.atp.farmcore.api.response.BaseResponse
 import com.atiurin.atp.farmcore.api.response.GetConfigResponse
+import com.atiurin.atp.farmcore.entity.Config
 import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.images.AndroidImagesConfiguration
 import com.atiurin.atp.farmserver.logging.log
@@ -87,6 +88,17 @@ class ConfigRestController  @Autowired constructor(
     fun getCurrentConfig(): GetConfigResponse {
         return processRequest {
             log.info { "Get current config" }
+            GetConfigResponse(farmConfig.get())
+        }
+    }
+
+    @PostMapping("/set")
+    fun setConfig(
+        @RequestParam config: Config
+    ): GetConfigResponse {
+        return processRequest {
+            log.info { "Set new config $config" }
+            farmConfig.set(config)
             GetConfigResponse(farmConfig.get())
         }
     }

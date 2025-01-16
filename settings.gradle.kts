@@ -5,6 +5,8 @@ include("farm-client")
 include("farm-core")
 include("farm-cli-client")
 include(":farm-app")
+include(":cli-support")
+include(":farm-kmp-client")
 
 pluginManagement {
     repositories {
@@ -34,5 +36,4 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-include(":cli-support")
-include(":farm-kmp-client")
+

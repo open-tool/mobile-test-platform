@@ -1,6 +1,8 @@
 package com.atiurin.atp.farmserver.test.rest
 
-import com.atiurin.atp.farmcore.api.response.GetConfigResponse
+import com.atiurin.atp.farmserver.test.di.FarmTestConfiguration
+import com.atiurin.atp.farmserver.test.di.FarmTestConfiguration.Companion.initialConfig
+import com.atiurin.atp.farmserver.test.rest.base.BaseRestControllerTest
 import org.assertj.core.api.SoftAssertions
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
@@ -10,15 +12,12 @@ import org.springframework.test.context.junit4.SpringRunner
 @RunWith(SpringRunner::class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = [BaseRestControllerTest.FarmTestConfiguration::class],
+    classes = [FarmTestConfiguration::class],
 )
 class InitialConfigIntegrationTest : BaseRestControllerTest() {
     @Test
     fun `get current farm config`() {
-        val config = client.getForEntity(
-            endpoint("config/current"),
-            GetConfigResponse::class.java
-        ).body?.config!!
+        val config = configRestController.getCurrentConfig().config
         println(config)
         SoftAssertions().apply {
             assertThat(config.isMock).isTrue

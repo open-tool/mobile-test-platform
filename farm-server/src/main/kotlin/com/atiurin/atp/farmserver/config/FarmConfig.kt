@@ -7,6 +7,7 @@ import javax.inject.Singleton
 @Singleton
 interface FarmConfig {
     fun set(block: Config.() -> Unit)
+    fun set(config: Config)
     fun get() : Config
     fun getPortInRange() = NetUtil.getFreePortInRange(get().startPort, get().endPort)
 }

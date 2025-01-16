@@ -2,13 +2,15 @@ package com.atiurin.atp.farmserver.test.rest
 
 import com.atiurin.atp.farmcore.api.model.toPoolDevice
 import com.atiurin.atp.farmcore.entity.DeviceStatus
+import com.atiurin.atp.farmserver.test.di.FarmTestConfiguration
+import com.atiurin.atp.farmserver.test.rest.base.BaseRestControllerTest
 import com.atiurin.atp.farmserver.test.util.AssertUtils.awaitTrue
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = [BaseRestControllerTest.FarmTestConfiguration::class],
+    classes = [FarmTestConfiguration::class],
 )
 class DeviceRestControllerIntegrationTest : BaseRestControllerTest() {
     @Test

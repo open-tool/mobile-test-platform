@@ -23,6 +23,7 @@ fun main(args: Array<String>) = App().main(args)
 
 class App: CliktCommand() {
     val maxAmount by option("-m", "--max_amount").int().required()
+    val maxDeviceCreationBatchSize by option("-cbs", "--max_device_creation_batch_size").int()
     val keepAliveDevices: Map<String, String> by option("-kad", "--keep_alive_devices").associate()
     val deviceBusyTimeoutInSec by option("-dbt", "--device_busy_timeout").long().required()
     val images: Map<String, String> by option("-i", "--img").associate()
@@ -47,6 +48,7 @@ class App: CliktCommand() {
         }.getOrThrow().toMap()
         InitialArguments.config = InitialConfig(
             maxDevicesAmount = maxAmount,
+            maxDeviceCreationBatchSize = maxDeviceCreationBatchSize ?: 10,
             keepAliveDevicesMap = devicesMap.toMutableMap(),
             deviceBusyTimeoutSec = deviceBusyTimeoutInSec,
             isMock = mockDevice,
