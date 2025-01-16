@@ -33,7 +33,7 @@ class Monitor @Autowired constructor(
         log.error { "Coroutine exception caught: ${exception.message}" }
     }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + exceptionHandler)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + exceptionHandler)
 
     override fun onApplicationEvent(event: DatasourceInitializedEvent) {
         log.info { "Database initialized, starting monitors" }
