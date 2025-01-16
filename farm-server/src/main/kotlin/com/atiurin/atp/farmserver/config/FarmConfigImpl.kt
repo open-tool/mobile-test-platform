@@ -15,13 +15,20 @@ class FarmConfigImpl : FarmConfig {
     @Value("\${farm.mode}")
     private var farmModeProperty: String? = null
 
-    private val config: Config by lazy {
+    private val configDelegate: Config by lazy {
         val farmMode = farmModeProperty?.let { mode -> FarmMode.valueOf(mode.uppercase()) } ?: FarmMode.LOCAL
         InitialArguments.config.toConfig(farmMode)
     }
 
+    private var config: Config = configDelegate
+
     override fun set(block: Config.() -> Unit) {
         config.block()
+        log.info { "Config initialised/updated $config" }
+    }
+
+    override fun set(config: Config) {
+        this.config = config
         log.info { "Config initialised/updated $config" }
     }
 

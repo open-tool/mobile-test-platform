@@ -15,6 +15,7 @@ import com.atiurin.atp.farmserver.util.nowSec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.Op
 import org.jetbrains.exposed.sql.Query
 import org.jetbrains.exposed.sql.SqlExpressionBuilder
@@ -27,6 +28,7 @@ import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.upsert
 import org.jetbrains.exposed.sql.vendors.ForUpdateOption
 import org.springframework.beans.factory.annotation.Autowired
+import java.util.concurrent.LinkedBlockingQueue
 
 abstract class DBDevicePool : AbstractDevicePool() {
     abstract val deviceRepository: DeviceRepository
@@ -92,7 +94,6 @@ abstract class DBDevicePool : AbstractDevicePool() {
         }
     }
 
-
     override fun removeDeviceInStatus(amount: Int, groupId: String, status: DeviceStatus) {
         removeDevicesWhere(amount) {
             Devices.status eq status.lowercaseName() and
@@ -106,7 +107,6 @@ abstract class DBDevicePool : AbstractDevicePool() {
             Devices.state eq state.lowercaseName() and (Devices.ip eq localServerRepository.ip)
         }
     }
-
 
     private fun removeDevicesWhere(amount: Int, predicate: SqlExpressionBuilder.() -> Op<Boolean>) {
         val deviceIdsToRemove = mutableListOf<String>()
@@ -152,24 +152,33 @@ abstract class DBDevicePool : AbstractDevicePool() {
     }
 
     override fun create(
-        amount: Int, deviceInfo: DeviceInfo, status: DeviceStatus
+        amount: Int, deviceInfo: DeviceInfo, status: DeviceStatus, creatingDeviceQueue: LinkedBlockingQueue<FarmPoolDevice>,
     ): List<FarmPoolDevice> {
         log.info { "Create $amount new devices for group $deviceInfo.groupId" }
         val newDevices = mutableListOf<FarmPoolDevice>()
-        repeat(amount) {
-            val farmPoolDevice = initDevice(deviceInfo)
-            insertOrUpdateDeviceInDB(farmPoolDevice)
-            newDevices.add(farmPoolDevice)
-            CoroutineScope(Dispatchers.Default).launch {
-                val device = deviceRepository.createDevice(farmPoolDevice.device)
-                insertOrUpdateDeviceInDB(
-                    farmPoolDevice.copy(
-                        device = device,
-                        status = status,
-                        statusTimestampSec = if (status != farmPoolDevice.status) nowSec() else farmPoolDevice.statusTimestampSec,
-                        desc = ""
+        runBlocking {
+            repeat(amount) {
+                val farmPoolDevice = initDevice(deviceInfo)
+                insertOrUpdateDeviceInDB(farmPoolDevice)
+                newDevices.add(farmPoolDevice)
+                creatingDeviceQueue.add(farmPoolDevice)
+            }
+        }
+        val scope = CoroutineScope(Dispatchers.Default)
+        scope.launch {
+            while (creatingDeviceQueue.isNotEmpty()){
+                val farmPoolDevice = creatingDeviceQueue.poll()
+                launch {
+                    val device = deviceRepository.createDevice(farmPoolDevice.device)
+                    insertOrUpdateDeviceInDB(
+                        farmPoolDevice.copy(
+                            device = device,
+                            status = status,
+                            statusTimestampSec = if (status != farmPoolDevice.status) nowSec() else farmPoolDevice.statusTimestampSec,
+                            desc = ""
+                        )
                     )
-                )
+                }
             }
         }
         return newDevices
@@ -232,7 +241,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
         allDevicesOnLocalServerAmount: Int,
         requestedAmount: Int,
         availableAmount: Int,
-        groupId: String
+        groupId: String,
     ): List<FarmPoolDevice> {
         if (allDevicesOnLocalServerAmount >= farmConfig.get().maxDevicesAmount) {
             return emptyList()
@@ -245,7 +254,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
     }
 
     private fun addNeedToCreateDevices(
-        amount: Int, groupId: String, userAgent: String
+        amount: Int, groupId: String, userAgent: String,
     ): List<FarmPoolDevice> {
         val newDevices = mutableListOf<FarmPoolDevice>()
         //if we have max devices amount on local server we can't create more
@@ -269,7 +278,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
      * should be called in transaction scope
      */
     private fun getAvailableDevicesAndBlock(
-        groupId: String, limitAmount: Int
+        groupId: String, limitAmount: Int,
     ): List<FarmPoolDevice> {
         val aliveServerIps = localServerRepository.getAliveServers().map { it.ip }
         return Devices.selectAll().where {
@@ -319,7 +328,6 @@ abstract class DBDevicePool : AbstractDevicePool() {
                 }
         }
     }
-
 
     override fun block(deviceId: String, desc: String) {
         executeTransaction {

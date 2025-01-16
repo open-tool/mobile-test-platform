@@ -4,6 +4,7 @@ package com.atiurin.atp.farmcore.entity
 data class Config(
     val farmMode: FarmMode = FarmMode.LOCAL,
     var maxDevicesAmount: Int = 0,
+    var maxDeviceCreationBatchSize: Int = 10,
     var keepAliveDevicesMap: MutableMap<String, Int> = mutableMapOf(),
     var busyDeviceTimeoutSec: Long = 30 * 60,
     var creatingDeviceTimeoutSec: Long = 10 * 60,

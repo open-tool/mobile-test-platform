@@ -1,7 +1,8 @@
 package com.atiurin.atp.farmserver.test.rest.monitoring
 
 import com.atiurin.atp.farmserver.logging.log
-import com.atiurin.atp.farmserver.test.rest.BaseRestControllerTest
+import com.atiurin.atp.farmserver.test.di.FarmTestConfiguration
+import com.atiurin.atp.farmserver.test.rest.base.BaseRestControllerTestWithDevices
 import com.atiurin.atp.farmserver.test.util.AssertUtils.awaitTrue
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
@@ -12,14 +13,15 @@ import org.springframework.test.context.junit4.SpringRunner
 @RunWith(SpringRunner::class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = [BaseRestControllerTest.FarmTestConfiguration::class],
+    classes = [FarmTestConfiguration::class],
 )
-@DirtiesContext
-class MonitorRemovesFreeDevicesTest  : BaseRestControllerTest() {
+//@DirtiesContext
+class MonitorRemovesFreeDevicesTest  : BaseRestControllerTestWithDevices() {
     @Test
     @DirtiesContext
     fun `monitor removes only free devices if necessary`() {
         val currentConfig = configRestController.getCurrentConfig().config
+        log.info { "Current config: $currentConfig" }
         val group: String = currentConfig.keepAliveDevicesMap.keys.last()
         val totalDevices = currentConfig.keepAliveDevicesMap[group] ?: 0
 

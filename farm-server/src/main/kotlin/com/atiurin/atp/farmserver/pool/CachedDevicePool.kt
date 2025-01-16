@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.time.Instant
+import java.util.concurrent.LinkedBlockingQueue
 
 /**
  * Base class to create device pool
@@ -51,7 +51,12 @@ abstract class CachedDevicePool : AbstractDevicePool() {
         }
     }
 
-    override fun create(amount: Int, deviceInfo: DeviceInfo, status: DeviceStatus): MutableList<FarmPoolDevice> {
+    override fun create(
+        amount: Int,
+        deviceInfo: DeviceInfo,
+        status: DeviceStatus,
+        creatingDeviceQueue: LinkedBlockingQueue<FarmPoolDevice>,
+    ): MutableList<FarmPoolDevice> {
         log.info { "Create $amount new devices $deviceInfo" }
         val newDevices = mutableListOf<FarmPoolDevice>()
         synchronized(devices) {
@@ -60,14 +65,22 @@ abstract class CachedDevicePool : AbstractDevicePool() {
                 farmPoolDevice.status = status
                 newDevices.add(farmPoolDevice)
                 devices.add(farmPoolDevice)
-                CoroutineScope(Dispatchers.Default).launch {
-                    val device = deviceRepository.createDevice(farmPoolDevice.device)
-                    devices.find { poolDevice ->
-                        poolDevice.device.id == device.id
-                    }?.device = device
+                creatingDeviceQueue.add(farmPoolDevice)
+            }
+            val scope = CoroutineScope(Dispatchers.Default)
+            scope.launch {
+                while (creatingDeviceQueue.isNotEmpty()){
+                    val farmPoolDevice = creatingDeviceQueue.poll()
+                    launch {
+                        val device = deviceRepository.createDevice(farmPoolDevice.device)
+                        devices.find { poolDevice ->
+                            poolDevice.device.id == device.id
+                        }?.device = device
+                    }
                 }
             }
         }
+
         return newDevices
     }
 
@@ -99,7 +112,7 @@ abstract class CachedDevicePool : AbstractDevicePool() {
     private fun tryToRunLocalDevices(
         requestedAmount: Int,
         availableAmount: Int,
-        groupId: String
+        groupId: String,
     ): List<FarmPoolDevice> {
         if (devices.size >= farmConfig.get().maxDevicesAmount) {
             return emptyList()
@@ -113,7 +126,7 @@ abstract class CachedDevicePool : AbstractDevicePool() {
 
     private fun getAvailableDevicesAndBlock(
         groupId: String,
-        limitAmount: Int
+        limitAmount: Int,
     ): List<FarmPoolDevice> {
         synchronized(devices) {
             val availableDevices = devices.filter {
@@ -166,6 +179,7 @@ abstract class CachedDevicePool : AbstractDevicePool() {
             }
         }
     }
+
     override fun removeDeviceInState(amount: Int, state: DeviceState) {
         synchronized(devices) {
             val selectedDevices = devices.filter { it.device.state == state }

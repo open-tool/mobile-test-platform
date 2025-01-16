@@ -5,6 +5,7 @@ import com.atiurin.atp.farmcore.entity.FarmMode
 
 data class InitialConfig(
     val maxDevicesAmount: Int = 0,
+    val maxDeviceCreationBatchSize: Int = 10,
     val keepAliveDevicesMap: Map<String, Int> = mapOf(),
     val deviceBusyTimeoutSec: Long = 30 * 60,
     val isMock: Boolean = false,
@@ -15,6 +16,7 @@ data class InitialConfig(
 
 fun InitialConfig.toConfig(farmMode: FarmMode = FarmMode.LOCAL) = Config(
     maxDevicesAmount = this.maxDevicesAmount,
+    maxDeviceCreationBatchSize = this.maxDeviceCreationBatchSize,
     keepAliveDevicesMap = this.keepAliveDevicesMap.toMutableMap(),
     busyDeviceTimeoutSec = this.deviceBusyTimeoutSec,
     isMock = this.isMock,

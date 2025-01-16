@@ -3,7 +3,8 @@ package com.atiurin.atp.farmserver.test.rest.monitoring
 import com.atiurin.atp.farmcore.api.model.toDevice
 import com.atiurin.atp.farmcore.entity.DeviceState
 import com.atiurin.atp.farmserver.device.MockDeviceRepository
-import com.atiurin.atp.farmserver.test.rest.BaseRestControllerTest
+import com.atiurin.atp.farmserver.test.di.FarmTestConfiguration
+import com.atiurin.atp.farmserver.test.rest.base.BaseRestControllerTest
 import com.atiurin.atp.farmserver.test.util.AssertUtils.awaitTrue
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
@@ -13,12 +14,13 @@ import org.springframework.test.context.junit4.SpringRunner
 @RunWith(SpringRunner::class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = [BaseRestControllerTest.FarmTestConfiguration::class],
+    classes = [FarmTestConfiguration::class],
 )
 class MonitorCreatingDeviceTest : BaseRestControllerTest() {
     @Test
     fun `monitor device stack in CREATING state`() {
         val currentConfig = configRestController.getCurrentConfig().config
+        println(currentConfig)
         val group: String = currentConfig.keepAliveDevicesMap.keys.first()
         configRestController.updateGroupAmount(
             groupId = group, amount = 0

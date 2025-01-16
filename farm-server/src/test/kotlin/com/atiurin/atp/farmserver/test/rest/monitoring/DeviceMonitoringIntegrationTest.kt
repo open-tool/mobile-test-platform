@@ -1,21 +1,21 @@
 package com.atiurin.atp.farmserver.test.rest.monitoring
 
 import com.atiurin.atp.farmserver.logging.log
-import com.atiurin.atp.farmserver.test.rest.BaseRestControllerTest
+import com.atiurin.atp.farmserver.test.di.FarmTestConfiguration
+import com.atiurin.atp.farmserver.test.rest.base.BaseRestControllerTestWithDevices
 import com.atiurin.atp.farmserver.test.util.AssertUtils.awaitTrue
 import org.junit.jupiter.api.Test
 import org.junit.runner.RunWith
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.junit4.SpringRunner
 
 @RunWith(SpringRunner::class)
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    classes = [BaseRestControllerTest.FarmTestConfiguration::class],
+    classes = [FarmTestConfiguration::class],
 )
-@DirtiesContext
-class DeviceMonitoringIntegrationTest : BaseRestControllerTest() {
+//@DirtiesContext
+class DeviceMonitoringIntegrationTest : BaseRestControllerTestWithDevices() {
     @Test
     fun `update keep alive devices amount increases number of alive devices`() {
         val currentConfig = configRestController.getCurrentConfig().config

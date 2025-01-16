@@ -7,6 +7,7 @@ import com.atiurin.atp.farmserver.db.DatasourceInitializedEvent
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.pool.DevicePool
+import com.atiurin.atp.farmserver.pool.FarmPoolDevice
 import com.atiurin.atp.farmserver.servers.repository.LocalServerRepository
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
 import java.time.Instant
+import java.util.concurrent.LinkedBlockingQueue
 import javax.inject.Singleton
 
 @Singleton
@@ -25,13 +27,13 @@ import javax.inject.Singleton
 class Monitor @Autowired constructor(
     private val farmConfig: FarmConfig,
     private val devicePool: DevicePool,
-    private val localServerRepository: LocalServerRepository
+    private val localServerRepository: LocalServerRepository,
 ) : MonitorInterface, ApplicationListener<DatasourceInitializedEvent> {
     private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
         log.error { "Coroutine exception caught: ${exception.message}" }
     }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default + exceptionHandler)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO + exceptionHandler)
 
     override fun onApplicationEvent(event: DatasourceInitializedEvent) {
         log.info { "Database initialized, starting monitors" }
@@ -39,33 +41,57 @@ class Monitor @Autowired constructor(
     }
 
     final override fun startMonitors() {
-
         log.info { "Start monitors" }
         scope.launch { monitorBusyDevices() }
         scope.launch { monitorServer() }
-        scope.launch { monitorLocalServerDevicePool() }
+        scope.launch { monitorLocalServerDevicePoolToCreateRequired() }
+        scope.launch { monitorLocalServerDevicePoolToDeleteRequired() }
         scope.launch { monitorDevicesNeedToCreate() }
         scope.launch { monitorLocalDeviceNeedToDelete() }
         scope.launch { monitorCreatingDevices() }
     }
 
-    suspend fun monitorLocalServerDevicePool() {
-        log.info { "Launch monitorDevicePool" }
+
+    suspend fun monitorLocalServerDevicePoolToCreateRequired() {
+        val creatingDeviceQueue = LinkedBlockingQueue<FarmPoolDevice>()
         while (true) {
-            val keepAliveDevices = farmConfig.get().keepAliveDevicesMap
             runCatching {
-                keepAliveDevices.entries.forEach {
+                farmConfig.get().keepAliveDevicesMap.entries.forEach {
                     val groupId = it.key
                     val amount = it.value
                     val aliveDevicesAmount = devicePool.count { farmPoolDevice ->
                         farmPoolDevice.device.deviceInfo.groupId == groupId
                                 && farmPoolDevice.device.containerInfo.ip == localServerRepository.ip
                     }
-                    if (aliveDevicesAmount < amount) {
+                    if (aliveDevicesAmount < amount && creatingDeviceQueue.size < amount - aliveDevicesAmount) {
+                        val devicesToCreate = amount - aliveDevicesAmount - creatingDeviceQueue.size
                         val devices = devicePool.create(
-                            amount - aliveDevicesAmount,
-                            DeviceInfo("AutoLaunched $groupId", groupId)
+                            amount = if (devicesToCreate > farmConfig.get().maxDeviceCreationBatchSize) {
+                                farmConfig.get().maxDeviceCreationBatchSize
+                            } else devicesToCreate,
+                            deviceInfo = DeviceInfo("AutoLaunched $groupId", groupId),
+                            creatingDeviceQueue = creatingDeviceQueue
                         )
+                    }
+                }
+            }.onFailure {
+                log.error { "Error in monitorLocalServerDevicePool: ${it.message}" }
+            }
+            delay(farmConfig.get().devicePoolMonitorDelay)
+        }
+    }
+
+    suspend fun monitorLocalServerDevicePoolToDeleteRequired() {
+        log.info { "Launch monitorDevicePool" }
+        val creatingDeviceQueue = LinkedBlockingQueue<FarmPoolDevice>()
+        while (true) {
+            runCatching {
+                farmConfig.get().keepAliveDevicesMap.entries.forEach {
+                    val groupId = it.key
+                    val amount = it.value
+                    val aliveDevicesAmount = devicePool.count { farmPoolDevice ->
+                        farmPoolDevice.device.deviceInfo.groupId == groupId
+                                && farmPoolDevice.device.containerInfo.ip == localServerRepository.ip
                     }
                     if (aliveDevicesAmount > amount) { // need to kill extra devices
                         val busyDevicesAmount = devicePool.count { farmPoolDevice ->
@@ -86,13 +112,14 @@ class Monitor @Autowired constructor(
             }.onFailure {
                 log.error { "Error in monitorLocalServerDevicePool: ${it.message}" }
             }
-            delay(farmConfig.get().devicePoolMonitorDelay)
+            delay(farmConfig.get().devicePoolMonitorDelay * 2)
         }
     }
 
-    suspend fun monitorCreatingDevices(){
+
+    suspend fun monitorCreatingDevices() {
         log.info { "Launch monitorCreatingDevices" }
-        while (true){
+        while (true) {
             val timeout = farmConfig.get().creatingDeviceTimeoutSec
             runCatching {
                 devicePool.all().filter { it.device.state == DeviceState.CREATING }.forEach { poolDevice ->
