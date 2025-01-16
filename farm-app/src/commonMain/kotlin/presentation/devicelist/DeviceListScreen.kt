@@ -176,7 +176,7 @@ fun TableHeader(
             .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text("#", modifier = Modifier.weight(0.3f).padding(start = 8.dp))
+        Text("#", modifier = Modifier.weight(0.3f).padding(8.dp))
         SortableColumnHeader("Name", SortField.Name, sortBy, sortAscending, onSortChange, Modifier.weight(2f))
         SortableColumnHeader("IP", SortField.Ip, sortBy, sortAscending, onSortChange, Modifier.weight(2f))
         SortableColumnHeader("Status", SortField.Status, sortBy, sortAscending, onSortChange, Modifier.weight(1f))
