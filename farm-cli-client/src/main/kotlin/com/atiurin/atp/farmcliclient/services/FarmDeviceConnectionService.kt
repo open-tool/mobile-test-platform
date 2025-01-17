@@ -1,6 +1,7 @@
 package com.atiurin.atp.farmcliclient.services
 
 import com.atiurin.atp.farmcliclient.adb.AdbServer
+import com.atiurin.atp.farmcliclient.log
 import com.atiurin.atp.farmcore.entity.Device
 import com.atiurin.atp.farmcore.entity.DeviceState
 import com.atiurin.atp.farmcore.entity.isPreparing
@@ -17,25 +18,33 @@ class FarmDeviceConnectionService(
     private val farmClient: FarmClient,
     private val adbServer: AdbServer,
     private val channel: Channel<Device>,
-    private val deviceConnectionTimeoutMs: Long
+    private val deviceConnectionTimeoutMs: Long,
 ) : DeviceConnectionService {
     private val devices = mutableListOf<Device>()
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     override fun connect(amount: Int, groupId: String) {
-        val scope = CoroutineScope(Dispatchers.IO)
         runBlocking {
-            devices.addAll(farmClient.acquire(amount, groupId))
+            val devicesAcquired = farmClient.acquire(amount, groupId)
+            log.info { "Acquired devices: $devicesAcquired" }
+            devices.addAll(devicesAcquired)
             if (devices.isEmpty()) throw RuntimeException("No devices available")
         }
         devices.filter { it.state == DeviceState.READY }.forEach { device ->
-            scope.launch {
-                adbServer.connect(device, timeoutMs = deviceConnectionTimeoutMs).onSuccess {
-                    channel.send(device)
-                }
+            connectDevice(device, deviceConnectionTimeoutMs)
+        }
+        scope.launch { connectReadyDevices() }
+    }
+
+    private fun connectDevice(device: Device, timeoutMs: Long){
+        scope.launch {
+            adbServer.connect(device, timeoutMs = timeoutMs).onSuccess { device ->
+                log.info { "Send device to connected channel: $device" }
+                channel.send(device)
+            }.onFailure {
+                log.error { "Failed to connect device: $device" }
             }
         }
-
-        scope.launch { connectReadyDevices() }
     }
 
     override fun disconnect() {
@@ -46,7 +55,6 @@ class FarmDeviceConnectionService(
     }
 
     private suspend fun connectReadyDevices() {
-        val deviceConnectionScope = CoroutineScope(Dispatchers.IO)
         val notReadyDevices = devices.filter { it.state.isPreparing() }.map { it.id }
         if (notReadyDevices.isEmpty()) return
         val readyToConnectDevices = farmClient.info(notReadyDevices).toDevices()
@@ -54,11 +62,7 @@ class FarmDeviceConnectionService(
         readyToConnectDevices.forEach { updatedDevice ->
             devices.removeIf { it.id == updatedDevice.id }
             devices.add(updatedDevice)
-            deviceConnectionScope.launch {
-                adbServer.connect(updatedDevice).onSuccess {
-                    channel.send(updatedDevice)
-                }
-            }
+            connectDevice(updatedDevice, deviceConnectionTimeoutMs)
         }
         if (devices.count { it.state.isPreparing() } > 0) {
             delay(3000)

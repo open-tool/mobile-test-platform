@@ -8,11 +8,10 @@ import com.atiurin.atp.farmcliclient.services.DeviceConnectionService
 import com.atiurin.atp.farmcliclient.services.FarmDeviceConnectionService
 import com.atiurin.atp.farmcore.entity.Device
 import com.atiurin.atp.farmserver.util.NetUtil
-import com.farm.cli.executor.Cli
+import com.farm.cli.executor.CliCommandExecutor
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.exec.environment.EnvironmentUtils
-
 
 class MarathonTestRunCommand(
     private val deviceAmount: Int,
@@ -61,7 +60,8 @@ class MarathonTestRunCommand(
             val firstDevice = channel.receive()
             log.info { "1st device connected: $firstDevice, start marathon test run" }
         }
-        val result = Cli.execute(buildCliCommand(), environments)
+        val cmd = CliCommandExecutor()
+        val result = cmd.execute(buildCliCommand(), environments)
         log.info { "marathon cli command success = ${result.success}, message = ${result.message}" }
         connectionService.disconnect()
         adbServer.kill()

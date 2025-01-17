@@ -8,10 +8,9 @@ import org.apache.commons.exec.DefaultExecutor
 import org.apache.commons.exec.ExecuteWatchdog
 import org.apache.commons.exec.PumpStreamHandler
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
 import kotlin.system.measureTimeMillis
 
-object Cli {
+class CliCommandExecutor {
     private val executor = DefaultExecutor()
 
     /**
@@ -28,6 +27,7 @@ object Cli {
         val outputStream = ByteArrayOutputStream()
         val errorStream = ByteArrayOutputStream()
         val exit = runCatching {
+            println("Execute CLI command '$cmdLine' with timeoutMs = $timeoutMs and envs '${envs.maskSensitiveData()}'")
             log.info { "Execute CLI command '$cmdLine' with timeoutMs = $timeoutMs and envs '${envs.maskSensitiveData()}'"}
             val cmd = CommandLine.parse(cmdLine)
             executor.watchdog = ExecuteWatchdog(timeoutMs)
@@ -50,11 +50,5 @@ object Cli {
             success = exit && exitCode == 0,
             message = message
         )
-    }
-}
-
-class CliInputStream : InputStream() {
-    override fun read(): Int {
-        return this.read()
     }
 }

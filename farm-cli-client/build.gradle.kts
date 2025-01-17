@@ -31,7 +31,7 @@ dependencies {
     implementation(project(":farm-core"))
     implementation(project(":cli-support"))
     implementation("com.github.ajalt.clikt:clikt:3.2.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
     implementation("org.junit.jupiter:junit-jupiter:5.7.0")
     testRuntimeOnly ("org.junit.jupiter:junit-jupiter-engine:5.7.0")
     testImplementation ("org.junit.jupiter:junit-jupiter-api:5.7.0")

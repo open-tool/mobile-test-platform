@@ -9,14 +9,15 @@ import org.junit.jupiter.api.Test
 class AcquireCommandTest {
     @Test
     fun acquireDeviceCommandTest(){
-        val farmUrls = listOf(getFarmUrlFromString("http://localhost:8080"))
+        val farmUrls = listOf(getFarmUrlFromString("http://localhost:8080/"))
         FarmClientProvider.init(
             FarmClientConfig(
                 farmUrls = farmUrls,
                 userAgent = "test"
             )
         )
-        val cmd = AcquireCommand(2, "30", timeoutMs = 3000)
+        val cmd = AcquireCommand(3, "28", deviceConnectionTimeoutMs = 60_000)
         cmd.execute()
+        println()
     }
 }

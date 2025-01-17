@@ -3,6 +3,7 @@ package com.atiurin.atp.farmcliclient.commands
 import com.atiurin.atp.farmcliclient.FarmClientProvider
 import com.atiurin.atp.farmcliclient.adb.AdbServer
 import com.atiurin.atp.farmcliclient.adb.AdbServerImpl
+import com.atiurin.atp.farmcliclient.log
 import com.atiurin.atp.farmcliclient.services.DeviceConnectionService
 import com.atiurin.atp.farmcliclient.services.FarmDeviceConnectionService
 import com.atiurin.atp.farmcore.entity.Device
@@ -46,7 +47,8 @@ class AcquireCommand(
         runBlocking {
             withTimeout(deviceConnectionTimeoutMs){
                 for (i in 1..deviceAmount) {
-                    channel.receive()
+                    val device = channel.receive()
+                    log.info { "Received device: $device" }
                 }
             }
         }
