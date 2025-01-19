@@ -8,7 +8,6 @@ import com.atiurin.atp.farmcore.entity.isPreparing
 import com.atiurin.atp.farmcore.entity.toDevices
 import com.atiurin.atp.kmpclient.FarmClient
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -37,7 +36,6 @@ class FarmDeviceConnectionService(
         scope.launch { connectReadyDevices() }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     private fun connectDevice(device: Device, timeoutMs: Long) {
         scope.launch {
             adbServer.connect(device, timeoutMs = timeoutMs).onSuccess { device ->

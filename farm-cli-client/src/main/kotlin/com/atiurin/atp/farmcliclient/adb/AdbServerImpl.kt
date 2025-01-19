@@ -2,8 +2,10 @@ package com.atiurin.atp.farmcliclient.adb
 
 import com.atiurin.atp.farmcliclient.log
 import com.atiurin.atp.farmcore.entity.Device
-import com.farm.cli.executor.Cli
+import com.farm.cli.command.ConnectDeviceCommand
+import com.farm.cli.command.WaitForDeviceCommand
 import com.farm.cli.executor.CliCommandExecutor
+import kotlinx.coroutines.runBlocking
 import kotlin.time.measureTimedValue
 
 @Suppress("ThrowableNotThrown")
@@ -12,26 +14,26 @@ class AdbServerImpl(override val port: Int) : AdbServer {
     private val portCmdPart = if (port > 0) "-P $port" else ""
 
     override fun start() {
-        Cli.execute("adb $portCmdPart start-server")
+        CliCommandExecutor().execute("adb $portCmdPart start-server")
     }
 
     override fun kill() {
-        Cli.execute("adb $portCmdPart kill-server")
+        CliCommandExecutor().execute("adb $portCmdPart kill-server")
     }
 
     override fun connect(devices: List<Device>) {
         log.info { "devices to connect: $devices" }
         devices.forEach {
-            Cli.execute("adb $portCmdPart connect ${it.ip}:${it.adbConnectPort}")
-            Cli.execute("adb $portCmdPart -s ${it.ip}:${it.adbConnectPort} wait-for-device")
+            runBlocking {
+                connect(it, timeoutMs = 60_000)
+            }
         }
     }
 
     override suspend fun connect(device: Device, timeoutMs: Long) : Result<Device> {
-        val cmd = CliCommandExecutor()
         log.info { "Connect device: $device with timeout: $timeoutMs" }
         val timedResult = measureTimedValue {
-            val connectResult = cmd.execute("adb $portCmdPart connect ${device.ip}:${device.adbConnectPort}", timeoutMs = timeoutMs)
+            val connectResult = ConnectDeviceCommand(adbServerPort = port, device = device, timeoutMs = timeoutMs).execute()
             if (connectResult.success){
                 waitForDevice(device, 5000)
             } else {
@@ -46,9 +48,8 @@ class AdbServerImpl(override val port: Int) : AdbServer {
         return result
     }
 
-    fun waitForDevice(device: Device, timeoutMs: Long = 5000): Result<Device> {
-        val cmd = CliCommandExecutor()
-        val waitForDeviceResult = cmd.execute("adb $portCmdPart -s ${device.ip}:${device.adbConnectPort} wait-for-device", timeoutMs = timeoutMs)
+    suspend fun waitForDevice(device: Device, timeoutMs: Long = 5000): Result<Device> {
+        val waitForDeviceResult = WaitForDeviceCommand(adbServerPort = port, device = device, timeoutMs = timeoutMs).execute()
         return if (waitForDeviceResult.success){
             log.info { "Device ${device.id} with ip ${device.ip}:${device.adbConnectPort} connected successfully" }
             Result.success(device)
@@ -60,11 +61,11 @@ class AdbServerImpl(override val port: Int) : AdbServer {
     override fun disconnect(devices: List<Device>) {
         log.info { "devices to disconnect: $devices" }
         devices.forEach {
-            Cli.execute("adb $portCmdPart disconnect ${it.ip}:${it.adbConnectPort}")
+            CliCommandExecutor().execute("adb $portCmdPart disconnect ${it.ip}:${it.adbConnectPort}")
         }
     }
 
     override fun printDevices() {
-        Cli.execute("adb $portCmdPart devices")
+        CliCommandExecutor().execute("adb $portCmdPart devices")
     }
 }

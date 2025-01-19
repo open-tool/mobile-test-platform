@@ -1,5 +1,7 @@
 package com.farm.cli.executor
 
+import com.farm.cli.analyzer.CliCommandResultAnalyzer
+import com.farm.cli.analyzer.DummyCommandResultAnalyzer
 import com.farm.cli.command.CliCommandResult
 import com.farm.cli.extensions.maskSensitiveData
 import com.farm.cli.log.log
@@ -11,7 +13,9 @@ import org.apache.commons.io.output.TeeOutputStream
 import java.io.ByteArrayOutputStream
 import kotlin.system.measureTimeMillis
 
-class CliCommandExecutor {
+class CliCommandExecutor(
+    private val analyzer: CliCommandResultAnalyzer = DummyCommandResultAnalyzer()
+) {
     private val executor = DefaultExecutor()
 
     /**
@@ -48,9 +52,13 @@ class CliCommandExecutor {
             message = outputStream.toString().ifBlank { errorStream.toString() }
             log.error { "Command '$cmdLine' executed successfully in $executionTime ms. Output: \n$message" }
         }.isSuccess
+        val outputToAnalyze = outputStream.toString().ifBlank {
+            errorStream.toString()
+        }
+        val isSuccessful = analyzer.analyze(outputToAnalyze)
 
         return CliCommandResult(
-            success = exit && exitCode == 0,
+            success = exit && exitCode == 0 && isSuccessful,
             message = message
         )
     }
