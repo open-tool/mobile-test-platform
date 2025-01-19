@@ -7,7 +7,6 @@ import com.atiurin.atp.kmpclient.get
 import com.atiurin.atp.kmpclient.post
 import io.ktor.client.HttpClient
 import io.ktor.client.request.parameter
-import io.ktor.http.parametersOf
 import io.ktor.http.path
 
 class DeviceService(private val client: HttpClient) {
@@ -39,7 +38,9 @@ class DeviceService(private val client: HttpClient) {
     suspend fun release(deviceIds: List<String>): Result<BaseResponse> =
         client.post {
             url { path("device/release") }
-            parametersOf("deviceIds", deviceIds)
+            deviceIds.forEach {
+                parameter("deviceIds", it)
+            }
         }
 
     suspend fun remove(deviceId: String): Result<BaseResponse> =

@@ -3,16 +3,13 @@ package com.atiurin.atp.farmcliclient.commands
 import com.atiurin.atp.farmcliclient.FarmClientProvider
 import com.atiurin.atp.farmcliclient.adb.AdbServer
 import com.atiurin.atp.farmcliclient.adb.AdbServerImpl
-import com.atiurin.atp.farmcliclient.log
 import com.atiurin.atp.farmcliclient.services.DeviceConnectionService
 import com.atiurin.atp.farmcliclient.services.FarmDeviceConnectionService
+import com.atiurin.atp.farmcliclient.util.waitFor
 import com.atiurin.atp.farmcore.entity.Device
 import com.atiurin.atp.farmserver.util.NetUtil
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import org.apache.commons.exec.environment.EnvironmentUtils
-
+import java.util.concurrent.LinkedBlockingQueue
 
 class AcquireCommand(
     private val deviceAmount: Int,
@@ -36,21 +33,16 @@ class AcquireCommand(
 
     override fun execute(): Boolean {
         val adbServer = runAdbServer()
-        val channel = Channel<Device>()
+        val connectedDeviceQueue = LinkedBlockingQueue<Device>()
         val connectionService: DeviceConnectionService = FarmDeviceConnectionService(
             farmClient = FarmClientProvider.client,
             adbServer = adbServer,
-            channel = channel,
+            connectedDeviceQueue = connectedDeviceQueue,
             deviceConnectionTimeoutMs = deviceConnectionTimeoutMs
         )
         connectionService.connect(deviceAmount, groupId)
-        runBlocking {
-            withTimeout(deviceConnectionTimeoutMs){
-                for (i in 1..deviceAmount) {
-                    val device = channel.receive()
-                    log.info { "Received device: $device" }
-                }
-            }
+        waitFor(timeoutMs = deviceConnectionTimeoutMs){
+            connectedDeviceQueue.size == deviceAmount
         }
 //        connectionService.disconnect()
 //        adbServer.kill()

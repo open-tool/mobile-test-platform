@@ -7,6 +7,7 @@ import org.apache.commons.exec.CommandLine
 import org.apache.commons.exec.DefaultExecutor
 import org.apache.commons.exec.ExecuteWatchdog
 import org.apache.commons.exec.PumpStreamHandler
+import org.apache.commons.io.output.TeeOutputStream
 import java.io.ByteArrayOutputStream
 import kotlin.system.measureTimeMillis
 
@@ -26,12 +27,14 @@ class CliCommandExecutor {
         var message = ""
         val outputStream = ByteArrayOutputStream()
         val errorStream = ByteArrayOutputStream()
+        val stdout = TeeOutputStream(System.out, outputStream)
+        val stderr = TeeOutputStream(System.err, errorStream)
         val exit = runCatching {
             println("Execute CLI command '$cmdLine' with timeoutMs = $timeoutMs and envs '${envs.maskSensitiveData()}'")
             log.info { "Execute CLI command '$cmdLine' with timeoutMs = $timeoutMs and envs '${envs.maskSensitiveData()}'"}
             val cmd = CommandLine.parse(cmdLine)
             executor.watchdog = ExecuteWatchdog(timeoutMs)
-            executor.streamHandler = PumpStreamHandler(outputStream, errorStream)
+            executor.streamHandler = PumpStreamHandler(stdout, stderr)
             executionTime = measureTimeMillis {
                 exitCode = executor.execute(cmd, envs)
             }
@@ -43,7 +46,7 @@ class CliCommandExecutor {
             log.error { message }
         }.onSuccess {
             message = outputStream.toString().ifBlank { errorStream.toString() }
-            log.error { "Command '$cmdLine' executed successfully in $executionTime ms" }
+            log.error { "Command '$cmdLine' executed successfully in $executionTime ms. Output: \n$message" }
         }.isSuccess
 
         return CliCommandResult(

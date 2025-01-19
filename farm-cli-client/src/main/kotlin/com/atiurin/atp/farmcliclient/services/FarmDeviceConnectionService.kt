@@ -8,16 +8,17 @@ import com.atiurin.atp.farmcore.entity.isPreparing
 import com.atiurin.atp.farmcore.entity.toDevices
 import com.atiurin.atp.kmpclient.FarmClient
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.util.concurrent.LinkedBlockingQueue
 
 class FarmDeviceConnectionService(
     private val farmClient: FarmClient,
     private val adbServer: AdbServer,
-    private val channel: Channel<Device>,
+    private val connectedDeviceQueue: LinkedBlockingQueue<Device>,
     private val deviceConnectionTimeoutMs: Long,
 ) : DeviceConnectionService {
     private val devices = mutableListOf<Device>()
@@ -36,11 +37,12 @@ class FarmDeviceConnectionService(
         scope.launch { connectReadyDevices() }
     }
 
-    private fun connectDevice(device: Device, timeoutMs: Long){
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun connectDevice(device: Device, timeoutMs: Long) {
         scope.launch {
             adbServer.connect(device, timeoutMs = timeoutMs).onSuccess { device ->
                 log.info { "Send device to connected channel: $device" }
-                channel.send(device)
+                connectedDeviceQueue.add(device)
             }.onFailure {
                 log.error { "Failed to connect device: $device" }
             }
@@ -48,6 +50,7 @@ class FarmDeviceConnectionService(
     }
 
     override fun disconnect() {
+
         CoroutineScope(Dispatchers.IO).launch {
             farmClient.releaseAllCaptured()
         }

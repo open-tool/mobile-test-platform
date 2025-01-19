@@ -12,6 +12,7 @@ kotlin {
     sourceSets {
         jvmMain.dependencies {
             implementation(libs.kotlin.logging.jvm)
+            api(libs.commons.io)
             api(libs.commons.exec)
             implementation(project(":farm-core"))
         }

@@ -40,6 +40,7 @@ class FarmCliClient : CliktCommand() {
     val marathonAdbPortVariable by option("-mapv", "--marathon_adb_port_variable")
     val userAgent by option("-ua", "--user_agent")
     val deviceConnectionTimeoutMs by option("-dct", "--device_connection_timeout_ms").long()
+    val timeoutMs by option("-to", "--timeout_ms").long()
 
 
     override fun run() {
@@ -48,7 +49,8 @@ class FarmCliClient : CliktCommand() {
         val farmUrls = urls?.map {
             getFarmUrlFromString(it)
         } ?: listOf(getFarmUrlFromString("http://localhost:8080"))
-        val deviceTimeoutMs = deviceConnectionTimeoutMs ?: (5 * 60_000L)
+        val deviceConnectionTimeoutMs = deviceConnectionTimeoutMs ?: (5 * 60_000L)
+        val commandTimeout = timeoutMs ?: (30 * 60_000L)
         FarmClientProvider.init(
             FarmClientConfig(
                 farmUrls = farmUrls,
@@ -57,7 +59,7 @@ class FarmCliClient : CliktCommand() {
         )
         when (command) {
             Command.ACQUIRE -> {
-                AcquireCommand(deviceAmount, group, deviceConnectionTimeoutMs = deviceTimeoutMs).execute()
+                AcquireCommand(deviceAmount, group, deviceConnectionTimeoutMs = deviceConnectionTimeoutMs).execute()
             }
             else -> {
                 val isSuccess = MarathonTestRunCommand(
@@ -68,7 +70,8 @@ class FarmCliClient : CliktCommand() {
                     adbPortVariable = marathonAdbPortVariable,
                     marathonCommand = marathonCommand,
                     envs = environments,
-                    deviceConnectionTimeoutMs = deviceTimeoutMs
+                    deviceConnectionTimeoutMs = deviceConnectionTimeoutMs,
+                    timeoutMs = commandTimeout
                 ).execute()
                 if (!isSuccess) exitProcess(1)
             }

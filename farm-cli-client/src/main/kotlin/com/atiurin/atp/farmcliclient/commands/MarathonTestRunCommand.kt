@@ -6,12 +6,12 @@ import com.atiurin.atp.farmcliclient.adb.AdbServerImpl
 import com.atiurin.atp.farmcliclient.log
 import com.atiurin.atp.farmcliclient.services.DeviceConnectionService
 import com.atiurin.atp.farmcliclient.services.FarmDeviceConnectionService
+import com.atiurin.atp.farmcliclient.util.waitFor
 import com.atiurin.atp.farmcore.entity.Device
 import com.atiurin.atp.farmserver.util.NetUtil
 import com.farm.cli.executor.CliCommandExecutor
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
 import org.apache.commons.exec.environment.EnvironmentUtils
+import java.util.concurrent.LinkedBlockingQueue
 
 class MarathonTestRunCommand(
     private val deviceAmount: Int,
@@ -21,6 +21,7 @@ class MarathonTestRunCommand(
     private val adbPortVariable: String? = null,
     private val marathonCommand: String? = null,
     private val deviceConnectionTimeoutMs: Long = 5 * 60_000,
+    private val timeoutMs: Long = 30 * 60_000,
     envs: Map<String, String> = mutableMapOf()
 ) : Command {
     private val environments =
@@ -48,23 +49,28 @@ class MarathonTestRunCommand(
 
     override fun execute(): Boolean {
         val adbServer = runAdbServer()
-        val channel = Channel<Device>()
+        val connectedDeviceQueue = LinkedBlockingQueue<Device>()
         val connectionService: DeviceConnectionService = FarmDeviceConnectionService(
             farmClient = FarmClientProvider.client,
             adbServer = adbServer,
-            channel = channel,
+            connectedDeviceQueue = connectedDeviceQueue,
             deviceConnectionTimeoutMs = deviceConnectionTimeoutMs)
         connectionService.connect(deviceAmount, groupId)
-        runBlocking {
-            // wait 1st device to be connected
-            val firstDevice = channel.receive()
-            log.info { "1st device connected: $firstDevice, start marathon test run" }
+        val isConnected = waitFor(timeoutMs = deviceConnectionTimeoutMs){
+            connectedDeviceQueue.isNotEmpty()
         }
-        val cmd = CliCommandExecutor()
-        val result = cmd.execute(buildCliCommand(), environments)
-        log.info { "marathon cli command success = ${result.success}, message = ${result.message}" }
+        val success = if (isConnected){
+            log.info { "Already connected devices size = ${connectedDeviceQueue.size}, start marathon test run" }
+            val cmd = CliCommandExecutor()
+            val result = cmd.execute(buildCliCommand(), envs = environments, timeoutMs = timeoutMs)
+            log.info { "marathon cli command success = ${result.success}, message = ${result.message}" }
+            result.success
+        } else {
+            log.error { "Couldn't connect devices in $deviceConnectionTimeoutMs ms" }
+            false
+        }
         connectionService.disconnect()
         adbServer.kill()
-        return result.success
+        return success
     }
 }
