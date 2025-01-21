@@ -55,6 +55,13 @@ abstract class DBDevicePool : AbstractDevicePool() {
     override fun remove(deviceId: String) {
         log.info { "Remove device $deviceId" }
         executeTransaction {
+            Devices.update({
+                Devices.uid eq deviceId
+            }) {
+                it[state] = DeviceState.NEED_REMOVE.lowercaseName()
+                it[stateTimestampSec] = nowSec()
+                it[desc] = "Device is planned to be deleted"
+            }
             val isLocalDevice = Devices.selectAll().where {
                 Devices.uid eq deviceId and (Devices.ip eq localServerRepository.ip)
             }.count() > 0
@@ -66,14 +73,6 @@ abstract class DBDevicePool : AbstractDevicePool() {
                     deviceRepository.deleteDevice(deviceId)
                 }
                 return@executeTransaction
-            } else {
-                Devices.update({
-                    Devices.uid eq deviceId
-                }) {
-                    it[state] = DeviceState.NEED_REMOVE.lowercaseName()
-                    it[stateTimestampSec] = nowSec()
-                    it[desc] = "Device is planned to be deleted"
-                }
             }
         }
     }
