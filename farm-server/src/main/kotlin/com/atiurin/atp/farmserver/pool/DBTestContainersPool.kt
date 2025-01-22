@@ -16,4 +16,10 @@ class DBTestContainersPool @Autowired constructor(
     override fun release(deviceId: String) {
         remove(deviceId)
     }
+
+    override fun release(deviceIds: List<String>) {
+        deviceIds.forEach {
+            remove(it)
+        }
+    }
 }
