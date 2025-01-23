@@ -1,6 +1,6 @@
 package com.atiurin.atp.farmcliclient.adb
 
-import com.atiurin.atp.farmcliclient.log
+import com.atiurin.atp.farmcliclient.logger.log
 import com.atiurin.atp.farmcore.entity.Device
 import com.farm.cli.command.ConnectDeviceCommand
 import com.farm.cli.command.WaitForDeviceCommand
@@ -25,31 +25,31 @@ class AdbServerImpl(override val port: Int) : AdbServer {
         log.info { "devices to connect: $devices" }
         devices.forEach {
             runBlocking {
-                connect(it, timeoutMs = 60_000)
+                connect(it, timeoutSec = 60_000)
             }
         }
     }
 
-    override suspend fun connect(device: Device, timeoutMs: Long) : Result<Device> {
-        log.info { "Connect device: $device with timeout: $timeoutMs" }
+    override suspend fun connect(device: Device, timeoutSec: Long) : Result<Device> {
+        log.info { "Connect device: $device with timeout: $timeoutSec" }
         val timedResult = measureTimedValue {
-            val connectResult = ConnectDeviceCommand(adbServerPort = port, device = device, timeoutMs = timeoutMs).execute()
+            val connectResult = ConnectDeviceCommand(adbServerPort = port, device = device, timeoutMs = timeoutSec).execute()
             if (connectResult.success){
                 waitForDevice(device, 5000)
             } else {
                 Result.failure(RuntimeException("Connect failed: ${connectResult.message}"))
             }
         }
-        val result = if (timedResult.value.isFailure && timedResult.duration.inWholeMilliseconds < timeoutMs){
-            connect(device, timeoutMs - timedResult.duration.inWholeMilliseconds)
+        val result = if (timedResult.value.isFailure && timedResult.duration.inWholeSeconds < timeoutSec){
+            connect(device, timeoutSec - timedResult.duration.inWholeSeconds)
         } else {
             timedResult.value
         }
         return result
     }
 
-    suspend fun waitForDevice(device: Device, timeoutMs: Long = 5000): Result<Device> {
-        val waitForDeviceResult = WaitForDeviceCommand(adbServerPort = port, device = device, timeoutMs = timeoutMs).execute()
+    suspend fun waitForDevice(device: Device, timeoutSec: Long = 5): Result<Device> {
+        val waitForDeviceResult = WaitForDeviceCommand(adbServerPort = port, device = device, timeoutSec = timeoutSec).execute()
         return if (waitForDeviceResult.success){
             log.info { "Device ${device.id} with ip ${device.ip}:${device.adbConnectPort} connected successfully" }
             Result.success(device)

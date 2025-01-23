@@ -15,7 +15,7 @@ class AcquireCommand(
     private val deviceAmount: Int,
     private val groupId: String,
     private val adbPortVariable: String? = null,
-    private val deviceConnectionTimeoutMs: Long = 5 * 60_000,
+    private val deviceConnectionTimeoutSec: Long = 5 * 60,
     envs: Map<String, String> = mutableMapOf()
 ) : Command {
     private val environments = envs.toMutableMap().apply { this.putAll(EnvironmentUtils.getProcEnvironment()) }
@@ -38,10 +38,10 @@ class AcquireCommand(
             farmClient = FarmClientProvider.client,
             adbServer = adbServer,
             connectedDeviceQueue = connectedDeviceQueue,
-            deviceConnectionTimeoutMs = deviceConnectionTimeoutMs
+            deviceConnectionTimeoutSec = deviceConnectionTimeoutSec
         )
         connectionService.connect(deviceAmount, groupId)
-        waitFor(timeoutMs = deviceConnectionTimeoutMs){
+        waitFor(timeoutMs = deviceConnectionTimeoutSec){
             connectedDeviceQueue.size == deviceAmount
         }
 //        connectionService.disconnect()

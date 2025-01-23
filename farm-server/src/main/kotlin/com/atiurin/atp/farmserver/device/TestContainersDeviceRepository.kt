@@ -52,8 +52,13 @@ class TestContainersDeviceRepository @Autowired constructor(
         containerMap.remove(deviceId)
     }
 
-    override fun isDeviceAlive(deviceId: String): Boolean =
-        containerMap[deviceId]?.container?.isRunning ?: false
+    override fun isDeviceAlive(deviceId: String): Boolean  {
+        val container = containerMap[deviceId]?.container ?: return false
+        if (container.isRunning) return false
+        return true
+//        container.execInContainer().stdout
+    }
+
 
     override fun getDevices(): List<FarmDevice> = containerMap.values.toList()
 

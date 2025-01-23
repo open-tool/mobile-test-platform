@@ -27,9 +27,11 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    api(project(":farm-core"))
     implementation(project(":farm-kmp-client"))
-    implementation(project(":farm-core"))
     implementation(project(":cli-support"))
+    implementation(libs.logback.classic)
+    implementation(libs.kotlin.logging.jvm)
     implementation("com.github.ajalt.clikt:clikt:3.2.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
     implementation("org.junit.jupiter:junit-jupiter:5.7.0")

@@ -18,7 +18,6 @@ repositories {
 
 kotlin {
     jvm()
-    wasmJs()
     java {
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -26,8 +25,14 @@ kotlin {
         commonMain {
             dependencies{
                 implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.kotlin.logging)
             }
         }
+//        jvmMain {
+//            dependencies {
+//                implementation(libs.slf4j.simple)
+//            }
+//        }
     }
 }
 tasks.withType<KotlinCompile> {

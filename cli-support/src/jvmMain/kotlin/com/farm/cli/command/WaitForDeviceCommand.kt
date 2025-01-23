@@ -11,14 +11,14 @@ import com.farm.cli.log.log
 class WaitForDeviceCommand(
     private val adbServerPort: Int? = null,
     private val device: Device,
-    private val timeoutMs: Long = 5_000
+    private val timeoutSec: Long = 5
 ) : CliCommand {
     private val executor = CliCommandExecutor(AdbWaitForDeviceCommandAnalyzer())
 
     override suspend fun execute(): CliCommandResult {
         val port = adbServerPort ?: -1
         val portCmdPart = if (port > 0) "-P $port" else ""
-        log.info { "Wait for device: $device with timeout: $timeoutMs" }
-        return executor.execute("adb $portCmdPart -s ${device.ip}:${device.adbConnectPort} wait-for-device", timeoutMs = timeoutMs)
+        log.info { "Wait for device: $device with timeout: $timeoutSec sec" }
+        return executor.execute("adb $portCmdPart -s ${device.ip}:${device.adbConnectPort} wait-for-device", timeoutMs = timeoutSec * 1000)
     }
 }

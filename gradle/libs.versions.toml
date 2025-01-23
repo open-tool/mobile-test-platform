@@ -16,20 +16,24 @@ commonsIo = "2.13.0"
 compose-plugin = "1.6.10"
 junit = "4.13.2"
 kotlin = "2.0.0"
+kotlinLogging = "3.0.5"
 kotlinLoggingJvm = "2.1.23"
 kotlinxCoroutinesSwing = "1.8.1"
 ktor = "3.0.0-beta-2-eap-920"
 kotlinx-datetime = "0.5.0"
+logbackClassic = "1.4.14"
 serialization = "1.7.0-RC"
 androidx-activityCompose = "1.9.0"
 androidx-lifecycle = "2.8.0"
 androidx-navigation = "2.7.0-alpha06"
+slf4jSimple = "2.0.9"
 uiDesktop = "1.6.7"
 jetbrainsKotlinJvm = "2.0.0"
 
 [libraries]
 commons-exec = { module = "org.apache.commons:commons-exec", version.ref = "commonsExec" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
+kotlin-logging = { module = "io.github.microutils:kotlin-logging", version.ref = "kotlinLogging" }
 kotlin-logging-jvm = { module = "io.github.microutils:kotlin-logging-jvm", version.ref = "kotlinLoggingJvm" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
@@ -55,6 +59,8 @@ androidx-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycl
 androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 androidx-ui-desktop = { group = "androidx.compose.ui", name = "ui-desktop", version.ref = "uiDesktop" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logbackClassic" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
 
 
 
