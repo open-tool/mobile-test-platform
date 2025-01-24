@@ -2,6 +2,7 @@ package com.atiurin.atp.farmserver.rest
 
 import com.atiurin.atp.farmcore.api.response.BaseResponse
 import com.atiurin.atp.farmcore.api.response.GetDevicesResponse
+import com.atiurin.atp.farmcore.api.response.GetPoolDeviceResponse
 import com.atiurin.atp.farmcore.api.response.GetPoolDevicesResponse
 import com.atiurin.atp.farmcore.entity.toApiDevice
 import com.atiurin.atp.farmcore.entity.toApiPoolDevice
@@ -116,6 +117,15 @@ class DeviceRestController @Autowired constructor(
         return processRequest {
             devicePool.unblock(deviceId)
             BaseResponse()
+        }
+    }
+
+    @GetMapping("/is-alive")
+    fun isAlive(@RequestParam deviceId: String): GetPoolDeviceResponse {
+        log.info { "Is device alive request: deviceId = $deviceId" }
+        return processRequest {
+            val device =devicePool.isAlive(deviceId)
+            GetPoolDeviceResponse(device.toPoolDevice().toApiPoolDevice())
         }
     }
 }

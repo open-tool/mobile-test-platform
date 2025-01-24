@@ -1,20 +1,15 @@
-name: "Android UI Tests"
-outputDir: "marathon-report"
+name: "ST Android UI Tests"
+outputDir: marathon_out
 isCodeCoverageEnabled: true
 batchingStrategy:
-  type: "fixed-size"
-  size: 5
-  durationMillis: 100000
-  percentile: 80.0
-  timeLimit: "-PT1H"
-  lastMileLength: 10
+  type: "isolate"
 retryStrategy:
   type: "fixed-quota"
-  totalAllowedRetryQuota: 100
+  totalAllowedRetryQuota: 50
   retryPerTestQuota: 2
 vendorConfiguration:
+  installOptions: "-d -t"
   type: "Android"
-  installOptions: "-t"
   screenRecordConfiguration:
     preferableRecorderType: "screenshot"
     videoConfiguration:
@@ -28,17 +23,26 @@ vendorConfiguration:
       width: 1080
       height: 1920
       delayMs: 200
+  adbServers:
+  - host: ${ADB_SERVER_HOST}
+    port: ${ADB_SERVER_PORT}
   outputs:
   - application: "app-debug.apk"
-    testApplication: "app-debug-androidTest_failed.apk"
+    testApplication: "app-debug-androidTest.apk"
   autoGrantPermission: true
   applicationPmClear: true
   testApplicationPmClear: true
-  vendor: ADAM
   waitForDevicesTimeoutMillis: 60000
   allureConfiguration:
     enabled: true
-  adbServers:
-  - host: localhost
-    port: ${ADB_SERVER_PORT}
 deviceInitializationTimeoutMillis: 180000
+filteringConfiguration:
+  allowlist:
+    - type: "package"
+      values:
+        - "com.exness.investments.test.mock.fund"
+  blocklist:
+    - type: "package"
+      values:
+        - "com.exness.investments.test.integration.prod"
+        - "com.exness.investments.test.integration.kyc"

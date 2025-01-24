@@ -30,6 +30,7 @@ class App: CliktCommand() {
     val mockDevice by option("-md", "--mock_device").flag()
     val startPortParam by option("-sp", "--start_port").int()
     val endPortParam by option("-ep", "--end_port").int()
+    val androidContainerAdbPath by option("-adbp", "--android_container_adb_path")
 
     override fun run() {
         log.info {
@@ -55,6 +56,7 @@ class App: CliktCommand() {
             startPort = startPortParam ?: 0,
             endPort = endPortParam ?: 65534,
             imagesMap = images,
+            androidContainerAdbPath = androidContainerAdbPath
         )
         val app = runApplication<FarmServer>()
         app.addApplicationListener { LoggingApplicationListener() }

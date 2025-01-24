@@ -41,6 +41,7 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation(project(":farm-core"))
+    implementation(project(":cli-support"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")

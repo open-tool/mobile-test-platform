@@ -34,8 +34,7 @@ class CliCommandExecutor(
         val stdout = TeeOutputStream(System.out, outputStream)
         val stderr = TeeOutputStream(System.err, errorStream)
         val exit = runCatching {
-            println("Execute CLI command '$cmdLine' with timeoutMs = $timeoutMs and envs '${envs.maskSensitiveData()}'")
-            log.info { "Execute CLI command '$cmdLine' with timeoutMs = $timeoutMs and envs '${envs.maskSensitiveData()}'"}
+            log.debug { "Execute CLI command '$cmdLine' with timeoutMs = $timeoutMs and envs '${envs.maskSensitiveData()}'"}
             val cmd = CommandLine.parse(cmdLine)
             executor.watchdog = ExecuteWatchdog(timeoutMs)
             executor.streamHandler = PumpStreamHandler(stdout, stderr)
@@ -49,7 +48,7 @@ class CliCommandExecutor(
             log.error { message }
         }.onSuccess {
             message = outputStream.toString().ifBlank { errorStream.toString() }
-            log.error { "Command '$cmdLine' executed successfully in $executionTime ms. Output: \n$message" }
+            log.debug { "Command '$cmdLine' executed successfully in $executionTime ms. Output: \n$message" }
         }.isSuccess
         val outputToAnalyze = outputStream.toString().ifBlank {
             errorStream.toString()

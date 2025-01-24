@@ -14,7 +14,7 @@ class MockDeviceRepository @Autowired constructor(
 ) : DeviceRepository {
     private val containerMap: MutableMap<String, FarmDevice> = mutableMapOf()
 
-    override fun createDevice(farmDevice: FarmDevice): FarmDevice {
+    override suspend fun createDevice(farmDevice: FarmDevice): FarmDevice {
         val config = farmConfig.get()
         val groupId = farmDevice.deviceInfo.groupId
         runCatching {
@@ -34,7 +34,7 @@ class MockDeviceRepository @Autowired constructor(
         return farmDevice
     }
 
-    override fun deleteDevice(deviceId: String) {
+    override suspend fun deleteDevice(deviceId: String) {
         containerMap.remove(deviceId)
     }
 
