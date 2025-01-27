@@ -49,6 +49,7 @@ class Monitor @Autowired constructor(
         scope.launch { monitorDevicesNeedToCreate() }
         scope.launch { monitorLocalDeviceNeedToDelete() }
         scope.launch { monitorCreatingDevices() }
+        scope.launch { monitorBrokenDevices() }
     }
 
     suspend fun monitorLocalServerDevicePoolToCreateRequired() {
@@ -191,6 +192,23 @@ class Monitor @Autowired constructor(
                 log.error { "Error in monitorDevicesNeedToCreate: ${it.message}" }
             }
             delay(farmConfig.get().deviceNeedToCreateMonitorDelay)
+        }
+    }
+
+    suspend fun monitorBrokenDevices() {
+        while (true) {
+            runCatching {
+                devicePool.all().filter { farmPoolDevice ->
+                    farmPoolDevice.device.state == DeviceState.READY
+                            && farmPoolDevice.status != DeviceStatus.BUSY
+                            && farmPoolDevice.device.containerInfo.ip == localServerRepository.ip
+                }.forEach {
+                    devicePool.isAlive(it.device.id)
+                }
+            }.onFailure {
+                log.error { "Error in monitorBrokenDevices: ${it.message}" }
+            }
+            delay(farmConfig.get().brokenDevicesMonitorDelay)
         }
     }
 }

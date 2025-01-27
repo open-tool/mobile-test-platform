@@ -12,6 +12,7 @@ data class InitialConfig(
     val startPort: Int = 0,
     val endPort: Int = 65534,
     val imagesMap: Map<String, String> = mapOf(),
+    val androidContainerAdbPath: String? = null
 )
 
 fun InitialConfig.toConfig(farmMode: FarmMode = FarmMode.LOCAL) = Config(
@@ -22,6 +23,7 @@ fun InitialConfig.toConfig(farmMode: FarmMode = FarmMode.LOCAL) = Config(
     isMock = this.isMock,
     startPort = this.startPort,
     endPort = this.endPort,
-    farmMode = farmMode
+    farmMode = farmMode,
+    androidContainerAdbPath = this.androidContainerAdbPath ?: "/android/sdk/platform-tools"
 )
 

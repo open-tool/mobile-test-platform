@@ -7,7 +7,7 @@ data class Config(
     var maxDeviceCreationBatchSize: Int = 10,
     var keepAliveDevicesMap: MutableMap<String, Int> = mutableMapOf(),
     var busyDeviceTimeoutSec: Long = 30 * 60,
-    var creatingDeviceTimeoutSec: Long = 10 * 60,
+    var creatingDeviceTimeoutSec: Long = 5 * 60,
     var isMock: Boolean = false,
     var startPort: Int = 0,
     var endPort: Int = 65534,
@@ -16,5 +16,7 @@ data class Config(
     var busyDevicesMonitorDelay: Long = 5_000L,
     var creatingDevicesMonitorDelay: Long = 5_000L,
     val deviceNeedToDeleteMonitorDelay: Long = 5_000L,
-    val deviceNeedToCreateMonitorDelay: Long = 5_000L
+    val deviceNeedToCreateMonitorDelay: Long = 5_000L,
+    val brokenDevicesMonitorDelay: Long = 30_000L,
+    var androidContainerAdbPath: String = "/android/sdk/platform-tools",
 )

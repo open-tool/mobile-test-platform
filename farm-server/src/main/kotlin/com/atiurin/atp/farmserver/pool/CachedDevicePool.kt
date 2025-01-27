@@ -2,6 +2,7 @@ package com.atiurin.atp.farmserver.pool
 
 import com.atiurin.atp.farmcore.entity.DeviceState
 import com.atiurin.atp.farmcore.entity.DeviceStatus
+import com.atiurin.atp.farmcore.entity.isPreparing
 import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.device.DeviceInfo
 import com.atiurin.atp.farmserver.device.DeviceRepository
@@ -208,6 +209,20 @@ abstract class CachedDevicePool : AbstractDevicePool() {
                     status = DeviceStatus.FREE
                 }
             }
+        }
+    }
+
+    override fun isAlive(deviceId: String): FarmPoolDevice {
+        synchronized(devices){
+            return devices.find{ it.device.id == deviceId }?.let { poolDevice ->
+                if (poolDevice.device.state.isPreparing()) return poolDevice
+                val isAlive = deviceRepository.isDeviceAlive(deviceId)
+                if (!isAlive) {
+                    poolDevice.device.state = DeviceState.BROKEN
+                    poolDevice.device.stateTimestampSec = nowSec()
+                }
+                poolDevice
+            } ?: throw IllegalStateException("Device $deviceId not found")
         }
     }
 }

@@ -2,6 +2,7 @@ package com.atiurin.atp.farmserver.pool
 
 import com.atiurin.atp.farmcore.entity.DeviceState
 import com.atiurin.atp.farmcore.entity.DeviceStatus
+import com.atiurin.atp.farmcore.entity.isPreparing
 import com.atiurin.atp.farmcore.entity.lowercaseName
 import com.atiurin.atp.farmserver.config.FarmConfig
 import com.atiurin.atp.farmserver.db.Devices
@@ -39,11 +40,14 @@ abstract class DBDevicePool : AbstractDevicePool() {
     @Autowired
     lateinit var farmConfig: FarmConfig
 
+    private val localDevices: Query
+        get() = Devices.selectAll().where {
+            Devices.ip eq localServerRepository.ip
+        }
+
     private val totalServerDevices: Int
         get() = executeTransaction {
-            Devices.selectAll().where {
-                Devices.ip eq localServerRepository.ip
-            }.count().toInt()
+            localDevices.count().toInt()
         }
 
     override fun all(): List<FarmPoolDevice> = executeTransaction {
@@ -151,7 +155,10 @@ abstract class DBDevicePool : AbstractDevicePool() {
     }
 
     override fun create(
-        amount: Int, deviceInfo: DeviceInfo, status: DeviceStatus, creatingDeviceQueue: LinkedBlockingQueue<FarmPoolDevice>,
+        amount: Int,
+        deviceInfo: DeviceInfo,
+        status: DeviceStatus,
+        creatingDeviceQueue: LinkedBlockingQueue<FarmPoolDevice>,
     ): List<FarmPoolDevice> {
         log.info { "Create $amount new devices for group $deviceInfo.groupId" }
         val newDevices = mutableListOf<FarmPoolDevice>()
@@ -165,7 +172,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
         }
         val scope = CoroutineScope(Dispatchers.Default)
         scope.launch {
-            while (creatingDeviceQueue.isNotEmpty()){
+            while (creatingDeviceQueue.isNotEmpty()) {
                 val farmPoolDevice = creatingDeviceQueue.poll()
                 launch {
                     val device = deviceRepository.createDevice(farmPoolDevice.device)
@@ -225,7 +232,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
             Devices.update({ Devices.uid inList idsForUpdate }) {
                 it[Devices.userAgent] = userAgent
                 it[status] = DeviceStatus.BUSY.lowercaseName()
-                it[stateTimestampSec] = nowSec()
+                it[statusTimestampSec] = nowSec()
             }
             deviceToBeAcquired
         }
@@ -351,6 +358,33 @@ abstract class DBDevicePool : AbstractDevicePool() {
                         it[desc] = ""
                     }
                 }
+        }
+    }
+
+    override fun isAlive(deviceId: String): FarmPoolDevice {
+        val getDeviceInfo = {
+            Devices.selectAll().where { Devices.uid eq deviceId }
+                .forUpdate(ForUpdateOption.ForUpdate).mapToFarmPoolDevice().first()
+        }
+        val poolDevice = getDeviceInfo()
+        //TODO: change to client request to another server
+        val isLocalDevice = Devices.selectAll().where {
+            Devices.uid eq deviceId and (Devices.ip eq localServerRepository.ip)
+        }.count() > 0
+        if (!isLocalDevice) return poolDevice
+        if (poolDevice.device.state.isPreparing()) return poolDevice
+        val isAlive = deviceRepository.isDeviceAlive(deviceId)
+        return if (!isAlive) {
+            //TODO: move to updateReturning statement
+            Devices.update(
+                where = { Devices.uid eq deviceId }
+            ) {
+                it[state] = DeviceState.BROKEN.lowercaseName()
+                it[stateTimestampSec] = nowSec()
+            }
+            getDeviceInfo()
+        } else {
+            poolDevice
         }
     }
 

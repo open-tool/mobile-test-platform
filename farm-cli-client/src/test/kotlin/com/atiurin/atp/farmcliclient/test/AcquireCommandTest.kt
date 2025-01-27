@@ -16,7 +16,7 @@ class AcquireCommandTest {
                 userAgent = "test"
             )
         )
-        val cmd = AcquireCommand(3, "28", deviceConnectionTimeoutMs = 60_000)
+        val cmd = AcquireCommand(3, "28", deviceConnectionTimeoutSec = 60_000)
         cmd.execute()
         println()
     }

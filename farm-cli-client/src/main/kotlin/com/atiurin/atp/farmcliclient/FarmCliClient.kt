@@ -2,6 +2,7 @@ package com.atiurin.atp.farmcliclient
 
 import com.atiurin.atp.farmcliclient.commands.AcquireCommand
 import com.atiurin.atp.farmcliclient.commands.MarathonTestRunCommand
+import com.atiurin.atp.farmcliclient.util.GitLabUtil
 import com.atiurin.atp.kmpclient.FarmClientConfig
 import com.atiurin.atp.kmpclient.getFarmUrlFromString
 import com.github.ajalt.clikt.core.CliktCommand
@@ -13,15 +14,7 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.long
-import org.apache.commons.exec.environment.EnvironmentUtils
 import kotlin.system.exitProcess
-
-var log = Log()
-
-class Log {
-    fun info(block: () -> Any?) = println(block())
-    fun error(block: () -> Any?) = println(block())
-}
 
 class FarmCliClient : CliktCommand() {
     val urls: List<String>? by option("-u", "--url").multiple()
@@ -39,30 +32,29 @@ class FarmCliClient : CliktCommand() {
     val environments: Map<String, String> by option("-e", "--env").associate()
     val marathonAdbPortVariable by option("-mapv", "--marathon_adb_port_variable")
     val userAgent by option("-ua", "--user_agent")
-    val deviceConnectionTimeoutMs by option("-dct", "--device_connection_timeout_ms").long()
-    val timeoutMs by option("-to", "--timeout_ms").long()
+    val deviceConnectionTimeoutSec by option("-dct", "--device_connection_timeout_ms").long()
+    val timeoutSec by option("-to", "--timeout_ms").long()
 
 
     override fun run() {
-        println(allure)
         val group = groupId ?: api ?: throw RuntimeException("Specify -g or --group_id option.")
         val farmUrls = urls?.map {
             getFarmUrlFromString(it)
         } ?: listOf(getFarmUrlFromString("http://localhost:8080"))
-        val deviceConnectionTimeoutMs = deviceConnectionTimeoutMs ?: (5 * 60_000L)
-        val commandTimeout = timeoutMs ?: (30 * 60_000L)
+        val deviceConnectionTimeoutSec = deviceConnectionTimeoutSec ?: (5 * 60)
+        val commandTimeout = timeoutSec ?: (30 * 60)
         FarmClientProvider.init(
             FarmClientConfig(
                 farmUrls = farmUrls,
-                userAgent = userAgent ?: getGitlabProjectId() ?: "test"
+                userAgent = userAgent ?: GitLabUtil.getProjectId() ?: "test"
             )
         )
-        when (command) {
+        val isSuccess = when (command) {
             Command.ACQUIRE -> {
-                AcquireCommand(deviceAmount, group, deviceConnectionTimeoutMs = deviceConnectionTimeoutMs).execute()
+                AcquireCommand(deviceAmount, group, deviceConnectionTimeoutSec = deviceConnectionTimeoutSec).execute()
             }
             else -> {
-                val isSuccess = MarathonTestRunCommand(
+                MarathonTestRunCommand(
                     deviceAmount = deviceAmount,
                     groupId = group,
                     isAllure = allure,
@@ -70,17 +62,16 @@ class FarmCliClient : CliktCommand() {
                     adbPortVariable = marathonAdbPortVariable,
                     marathonCommand = marathonCommand,
                     envs = environments,
-                    deviceConnectionTimeoutMs = deviceConnectionTimeoutMs,
-                    timeoutMs = commandTimeout
+                    deviceConnectionTimeoutSec = deviceConnectionTimeoutSec,
+                    timeoutSec = commandTimeout
                 ).execute()
-                if (!isSuccess) exitProcess(1)
+
             }
         }
+        if (!isSuccess) exitProcess(1)
     }
 
-    fun getGitlabProjectId(): String? {
-        return EnvironmentUtils.getProcEnvironment()["CI_PROJECT_TITLE"]
-    }
+
 }
 
 fun main(args: Array<String>) = FarmCliClient().main(args)

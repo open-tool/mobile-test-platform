@@ -1,5 +1,5 @@
 package com.farm.cli.log
 
-import mu.KotlinLogging
+import com.atiurin.atp.farmcore.logger.LoggerFactory
 
-val log = KotlinLogging.logger("Cli logger")
+val log = LoggerFactory.logger("Cli logger")

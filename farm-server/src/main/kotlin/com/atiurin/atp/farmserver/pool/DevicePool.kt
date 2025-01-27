@@ -20,4 +20,5 @@ interface DevicePool {
     fun releaseAll(groupId: String)
     fun block(deviceId: String, desc: String)
     fun unblock(deviceId: String)
+    fun isAlive(deviceId: String): FarmPoolDevice
 }

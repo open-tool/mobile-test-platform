@@ -3,7 +3,7 @@ package com.atiurin.atp.farmcliclient.commands
 import com.atiurin.atp.farmcliclient.FarmClientProvider
 import com.atiurin.atp.farmcliclient.adb.AdbServer
 import com.atiurin.atp.farmcliclient.adb.AdbServerImpl
-import com.atiurin.atp.farmcliclient.log
+import com.atiurin.atp.farmcliclient.logger.log
 import com.atiurin.atp.farmcliclient.services.DeviceConnectionService
 import com.atiurin.atp.farmcliclient.services.FarmDeviceConnectionService
 import com.atiurin.atp.farmcliclient.util.waitFor
@@ -20,8 +20,8 @@ class MarathonTestRunCommand(
     private val marathonConfigFilePath: String? = null,
     private val adbPortVariable: String? = null,
     private val marathonCommand: String? = null,
-    private val deviceConnectionTimeoutMs: Long = 5 * 60_000,
-    private val timeoutMs: Long = 30 * 60_000,
+    private val deviceConnectionTimeoutSec: Long = 5 * 60,
+    private val timeoutSec: Long = 30 * 60,
     envs: Map<String, String> = mutableMapOf()
 ) : Command {
     private val environments =
@@ -54,19 +54,19 @@ class MarathonTestRunCommand(
             farmClient = FarmClientProvider.client,
             adbServer = adbServer,
             connectedDeviceQueue = connectedDeviceQueue,
-            deviceConnectionTimeoutMs = deviceConnectionTimeoutMs)
+            deviceConnectionTimeoutSec = deviceConnectionTimeoutSec)
         connectionService.connect(deviceAmount, groupId)
-        val isConnected = waitFor(timeoutMs = deviceConnectionTimeoutMs){
+        val isConnected = waitFor(timeoutMs = deviceConnectionTimeoutSec * 1000){
             connectedDeviceQueue.isNotEmpty()
         }
         val success = if (isConnected){
             log.info { "Already connected devices size = ${connectedDeviceQueue.size}, start marathon test run" }
             val cmd = CliCommandExecutor()
-            val result = cmd.execute(buildCliCommand(), envs = environments, timeoutMs = timeoutMs)
+            val result = cmd.execute(buildCliCommand(), envs = environments, timeoutMs = timeoutSec * 1000)
             log.info { "marathon cli command success = ${result.success}, message = ${result.message}" }
             result.success
         } else {
-            log.error { "Couldn't connect devices in $deviceConnectionTimeoutMs ms" }
+            log.error { "Couldn't connect devices in $deviceConnectionTimeoutSec sec" }
             false
         }
         connectionService.disconnect()
