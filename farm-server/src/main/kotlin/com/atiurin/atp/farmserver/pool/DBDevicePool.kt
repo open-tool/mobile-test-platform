@@ -232,7 +232,7 @@ abstract class DBDevicePool : AbstractDevicePool() {
             Devices.update({ Devices.uid inList idsForUpdate }) {
                 it[Devices.userAgent] = userAgent
                 it[status] = DeviceStatus.BUSY.lowercaseName()
-                it[stateTimestampSec] = nowSec()
+                it[statusTimestampSec] = nowSec()
             }
             deviceToBeAcquired
         }
