@@ -44,8 +44,7 @@ class CliCommandExecutor(
         }.onFailure { ex ->
             val processError = errorStream.toString()
             message = "Command '$cmdLine' failed: ${processError}\nexception: ${ex.message}\ncause ${ex.cause}"
-            println(message)
-            log.error { message }
+            log.debug { message }
         }.onSuccess {
             message = outputStream.toString().ifBlank { errorStream.toString() }
             log.debug { "Command '$cmdLine' executed successfully in $executionTime ms. Output: \n$message" }
