@@ -15,7 +15,8 @@ to build server application launch
 ```shell
 ./gradlew clean :farm-server:distZip
 ```
-The zip application archive is generated in `farm-server/build/app/distributions`
+The zip application archive is generated in `
+`
 
 To launch the server:
 - unzip application archive 
@@ -44,10 +45,16 @@ farm-cli-client --device_amount 1 -g 30 --user_agent nameOfYourProject
 
 In case your farm-server is hosted not on `http://localhost:8080` add `--url farm_server_hostname` to `farm-cli-client` command.
 
+## Desktop App
+
+Project support Compose Multiplatform App to manage devices and explore servers. Run the app:
+
+```shell
+./gradlew :farm-app:desktopRun -DmainClass=MainKt
+```
+
 ### Roadmap
 
-- Server: Device alive monitor
-- Server: Log of device creation to manage problems
 - Desktop-App: device details support device removing 
 - Desktop-App: Servers support 
 - K8s Support (?)
