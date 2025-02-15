@@ -72,4 +72,8 @@ object Colors {
         val Busy = Color(0xFFFFB266)
         val Blocked = Color(0xFFFF6666)
     }
+    object ServerStatus {
+        val Online = Color(0xFF66CC00)
+        val Offline = Color(0xFFFF6666)
+    }
 }

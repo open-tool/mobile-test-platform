@@ -31,6 +31,7 @@ import presentation.devicedetails.DeviceDetailsViewModel
 import presentation.devicelist.DeviceListScreen
 import presentation.devicelist.DeviceListViewModel
 import presentation.mainmeny.MenuScreen
+import presentation.servers.ServersListViewModel
 import presentation.servers.ServersScreen
 import presentation.welcome.WelcomeScreen
 
@@ -104,7 +105,9 @@ fun FarmApp(
                 )
             }
             composable(route = AppScreen.Servers.name) {
-                ServersScreen()
+                val serversViewModel = viewModel { ServersListViewModel(Container.serverRepository) }
+                onRefresh.value = { serversViewModel.getServers() }
+                ServersScreen(viewModel = serversViewModel)
             }
             composable(route = AppScreen.DeviceList.name) {
                 val deviceListViewModel = viewModel { DeviceListViewModel(Container.deviceRepository) }
