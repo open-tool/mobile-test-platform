@@ -7,6 +7,7 @@ import com.atiurin.atp.farmserver.db.Servers
 import com.atiurin.atp.farmserver.logging.log
 import com.atiurin.atp.farmserver.rest.ConfigRestController
 import com.atiurin.atp.farmserver.rest.DeviceRestController
+import com.atiurin.atp.farmserver.rest.ServerRestController
 import com.atiurin.atp.farmserver.test.di.FarmTestConfiguration.Companion.defaultConfig
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -46,4 +47,7 @@ open class BaseRestControllerTest {
 
     @Autowired
     lateinit var deviceRestController: DeviceRestController
+
+    @Autowired
+    lateinit var serverRestController: ServerRestController
 }

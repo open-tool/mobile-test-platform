@@ -15,8 +15,9 @@ data class Config(
     var serverMonitorDelay: Long = 5_000L,
     var busyDevicesMonitorDelay: Long = 5_000L,
     var creatingDevicesMonitorDelay: Long = 5_000L,
-    val deviceNeedToDeleteMonitorDelay: Long = 5_000L,
-    val deviceNeedToCreateMonitorDelay: Long = 5_000L,
-    val brokenDevicesMonitorDelay: Long = 30_000L,
+    var deviceNeedToDeleteMonitorDelay: Long = 5_000L,
+    var deviceNeedToCreateMonitorDelay: Long = 5_000L,
+    var brokenDevicesMonitorDelay: Long = 30_000L,
     var androidContainerAdbPath: String = "/android/sdk/platform-tools",
+    var serverAliveTimeoutSec: Long = 30,
 )

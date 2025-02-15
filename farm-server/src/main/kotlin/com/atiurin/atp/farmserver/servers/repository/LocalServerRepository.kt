@@ -1,10 +1,9 @@
 package com.atiurin.atp.farmserver.servers.repository
 
-import com.atiurin.atp.farmserver.servers.ServerInfo
+import com.atiurin.atp.farmcore.entity.ServerInfo
 import com.atiurin.atp.farmserver.util.NetUtil
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.context.annotation.Bean
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Component
 

@@ -33,7 +33,7 @@ class AdbServerImpl(override val port: Int) : AdbServer {
     override suspend fun connect(device: Device, timeoutSec: Long) : Result<Device> {
         log.info { "Connect device: $device with timeout: $timeoutSec" }
         val timedResult = measureTimedValue {
-            val connectResult = ConnectDeviceCommand(adbServerPort = port, device = device, timeoutMs = timeoutSec).execute()
+            val connectResult = ConnectDeviceCommand(adbServerPort = port, device = device, timeoutMs = timeoutSec * 1000).execute()
             if (connectResult.success){
                 waitForDevice(device, 5000)
             } else {

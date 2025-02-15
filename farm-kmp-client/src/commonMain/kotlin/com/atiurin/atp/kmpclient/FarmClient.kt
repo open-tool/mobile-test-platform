@@ -5,7 +5,9 @@ import com.atiurin.atp.farmcore.api.model.toPoolDevices
 import com.atiurin.atp.farmcore.api.response.BaseResponse
 import com.atiurin.atp.farmcore.entity.Device
 import com.atiurin.atp.farmcore.entity.PoolDevice
+import com.atiurin.atp.farmcore.entity.ServerInfo
 import com.atiurin.atp.kmpclient.service.DeviceService
+import com.atiurin.atp.kmpclient.service.ServerService
 import java.net.ConnectException
 
 class FarmClient(
@@ -13,7 +15,8 @@ class FarmClient(
     private val doOnFailure: (String) -> Unit,
 ) {
     private var httpClient = HttpClient(config)
-    private var apiService: DeviceService = DeviceService(httpClient)
+    private var deviceService: DeviceService = DeviceService(httpClient)
+    private var serverService: ServerService = ServerService(httpClient)
     private val acquiredDevices = mutableListOf<Device>()
 
     fun getUserAgent() = config.userAgent
@@ -24,7 +27,7 @@ class FarmClient(
     ): List<Device> {
         return sendRequest(
             defaultValue = emptyList(),
-            requester = { apiService.acquire(amount, groupId, config.userAgent) },
+            requester = { deviceService.acquire(amount, groupId, config.userAgent) },
             onSuccess = { resp ->
                 val devices = resp.devices.toDevices()
                 acquiredDevices.addAll(devices)
@@ -36,7 +39,7 @@ class FarmClient(
     suspend fun list(): List<PoolDevice> {
         return sendRequest(
             defaultValue = emptyList(),
-            requester = { apiService.getList() },
+            requester = { deviceService.getList() },
             onSuccess = { resp ->
                 resp.poolDevices.toPoolDevices()
             }
@@ -46,7 +49,7 @@ class FarmClient(
     suspend fun info(deviceIds: List<String>): List<PoolDevice> {
         return sendRequest(
             defaultValue = emptyList(),
-            requester = { apiService.getInfo(deviceIds) },
+            requester = { deviceService.getInfo(deviceIds) },
             onSuccess = { resp ->
                 resp.poolDevices.toPoolDevices()
             }
@@ -56,7 +59,7 @@ class FarmClient(
     suspend fun release(deviceIds: List<String>) {
         return sendRequest(
             defaultValue = Unit,
-            requester = { apiService.release(deviceIds) },
+            requester = { deviceService.release(deviceIds) },
             onSuccess = {
                 deviceIds.forEach { deviceId ->
                     acquiredDevices.removeIf { it.id == deviceId }
@@ -73,15 +76,15 @@ class FarmClient(
     suspend fun remove(deviceId: String) {
         return sendRequest(
             defaultValue = Unit,
-            requester = { apiService.remove(deviceId) },
-            onSuccess = {}
+            requester = { deviceService.remove(deviceId) },
+            onSuccess = { }
         )
     }
 
     suspend fun block(deviceId: String, desc: String) {
         return sendRequest(
             defaultValue = Unit,
-            requester = { apiService.block(deviceId, desc) },
+            requester = { deviceService.block(deviceId, desc) },
             onSuccess = {}
         )
     }
@@ -89,8 +92,18 @@ class FarmClient(
     suspend fun unblock(deviceId: String) {
         return sendRequest(
             defaultValue = Unit,
-            requester = { apiService.unblock(deviceId) },
+            requester = { deviceService.unblock(deviceId) },
             onSuccess = {}
+        )
+    }
+
+    suspend fun serverList(): List<ServerInfo> {
+        return sendRequest(
+            defaultValue = emptyList(),
+            requester = { serverService.getList() },
+            onSuccess = { resp ->
+                resp.servers
+            }
         )
     }
 

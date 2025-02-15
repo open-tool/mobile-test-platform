@@ -32,8 +32,8 @@ class FarmCliClient : CliktCommand() {
     val environments: Map<String, String> by option("-e", "--env").associate()
     val marathonAdbPortVariable by option("-mapv", "--marathon_adb_port_variable")
     val userAgent by option("-ua", "--user_agent")
-    val deviceConnectionTimeoutSec by option("-dct", "--device_connection_timeout_ms").long()
-    val timeoutSec by option("-to", "--timeout_ms").long()
+    val deviceConnectionTimeoutSec by option("-dct", "--device_connection_timeout_sec").long()
+    val timeoutSec by option("-to", "--timeout_sec").long()
 
 
     override fun run() {

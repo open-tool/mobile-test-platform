@@ -6,6 +6,10 @@ import kotlinx.datetime.toLocalDateTime
 
 fun formatTimestampToDateString(timestamp: Long): String {
     val instant = Instant.fromEpochSeconds(timestamp)
-    val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-    return "${localDateTime.dayOfMonth.toString().padStart(2, '0')}.${localDateTime.monthNumber.toString().padStart(2, '0')}.${localDateTime.year} ${localDateTime.hour.toString().padStart(2, '0')}:${localDateTime.minute.toString().padStart(2, '0')}"
+    val dateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
+    return "${dateTime.year}-${dateTime.monthNumber.toString().padStart(2, '0')}-" +
+            "${dateTime.dayOfMonth.toString().padStart(2, '0')} " +
+            "${dateTime.hour.toString().padStart(2, '0')}:" +
+            "${dateTime.minute.toString().padStart(2, '0')}:" +
+            dateTime.second.toString().padStart(2, '0')
 }
