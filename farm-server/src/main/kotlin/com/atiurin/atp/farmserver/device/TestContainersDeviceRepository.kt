@@ -43,16 +43,16 @@ class TestContainersDeviceRepository @Autowired constructor(
         farmDevice.containerInfo = containerInfo
         farmDevice.container = container
         containerMap[farmDevice.id] = farmDevice
-        log.info { "Created container $containerInfo, device is booting .." }
+        log.info { "Device ${farmDevice.id} is booting. Created container $containerInfo, " }
         val bootTimeout = farmConfig.get().creatingDeviceTimeoutSec
         val isDeviceCreated = waitForWithDelay(timeoutMs = bootTimeout * 1000, intervalMs = 1000){
             isDeviceAlive(farmDevice.id)
         }
         val state = if (isDeviceCreated){
-            log.info { "Change $farmDevice state to ${DeviceState.READY} as it's booted" }
+            log.info { "Change device ${farmDevice.id} state to ${DeviceState.READY} as it's booted. $farmDevice" }
             DeviceState.READY
         } else {
-            log.info { "Change $farmDevice state to ${DeviceState.BROKEN} as it's not booted during $bootTimeout sec" }
+            log.info { "Change device ${farmDevice.id} state to ${DeviceState.BROKEN} as it's not booted during $bootTimeout sec. $farmDevice" }
             DeviceState.BROKEN
         }
         farmDevice.stateTimestampSec = nowSec()

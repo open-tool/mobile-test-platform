@@ -37,7 +37,7 @@ class CliCommandExecutor(
             log.debug { "Execute CLI command '$cmdLine' with timeoutMs = $timeoutMs and envs '${envs.maskSensitiveData()}'"}
             val cmd = CommandLine.parse(cmdLine)
             executor.watchdog = ExecuteWatchdog(timeoutMs)
-            executor.streamHandler = PumpStreamHandler(stdout, stderr)
+            executor.streamHandler = PumpStreamHandler(outputStream, errorStream)
             executionTime = measureTimeMillis {
                 exitCode = executor.execute(cmd, envs)
             }
