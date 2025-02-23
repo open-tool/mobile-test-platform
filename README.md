@@ -40,7 +40,7 @@ To launch the server:
 - add `farm-cli-client-folder/bin` folder to $PATH variable
 - run cli client with command like following
 ```shell
-farm-cli-client --device_amount 1 -g 30 --user_agent nameOfYourProject
+farm-cli-client --device_amount 2 -g 30 --user_agent nameOfYourProject --url  http://localhost:8080 --marathon_config MarathonfileUltron
 ```
 
 In case your farm-server is hosted not on `http://localhost:8080` add `--url farm_server_hostname` to `farm-cli-client` command.

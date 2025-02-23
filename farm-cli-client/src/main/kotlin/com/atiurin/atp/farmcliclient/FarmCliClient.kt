@@ -65,7 +65,6 @@ class FarmCliClient : CliktCommand() {
                     deviceConnectionTimeoutSec = deviceConnectionTimeoutSec,
                     timeoutSec = commandTimeout
                 ).execute()
-
             }
         }
         if (!isSuccess) exitProcess(1)

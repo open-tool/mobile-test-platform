@@ -284,4 +284,5 @@ marathon-report/
 local.properties
 .docker/
 .kotlin
-deploy
+deploy/
+ultron-artifacts/

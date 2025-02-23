@@ -61,7 +61,7 @@ class MarathonTestRunCommand(
         }
         val success = if (isConnected){
             log.info { "Already connected devices size = ${connectedDeviceQueue.size}, start marathon test run" }
-            val cmd = CliCommandExecutor()
+            val cmd = CliCommandExecutor(addSystemOut = true)
             val result = cmd.execute(buildCliCommand(), envs = environments, timeoutMs = timeoutSec * 1000)
             log.info { "marathon cli command success = ${result.success}, message = ${result.message}" }
             result.success

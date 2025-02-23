@@ -1,4 +1,4 @@
-name: "ST Android UI Tests"
+name: "Android UI Tests"
 outputDir: marathon_out
 isCodeCoverageEnabled: true
 batchingStrategy:
@@ -36,13 +36,3 @@ vendorConfiguration:
   allureConfiguration:
     enabled: true
 deviceInitializationTimeoutMillis: 180000
-filteringConfiguration:
-  allowlist:
-    - type: "package"
-      values:
-        - "com.exness.investments.test.mock.fund"
-  blocklist:
-    - type: "package"
-      values:
-        - "com.exness.investments.test.integration.prod"
-        - "com.exness.investments.test.integration.kyc"
