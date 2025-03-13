@@ -278,11 +278,10 @@ DerivedData
 sample/ios-app/Marathondevices
 
 apks/
-*.apk
+/*.apk
 #data/
 marathon-report/
 local.properties
 .docker/
 .kotlin
 deploy/
-ultron-artifacts/

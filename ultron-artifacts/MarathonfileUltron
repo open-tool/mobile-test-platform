@@ -1,0 +1,40 @@
+name: "Ultron UI Tests"
+outputDir: marathon_out
+isCodeCoverageEnabled: true
+batchingStrategy:
+  type: "class-name"
+retryStrategy:
+  type: "fixed-quota"
+  totalAllowedRetryQuota: 50
+  retryPerTestQuota: 2
+vendorConfiguration:
+  installOptions: "-d -t"
+  type: "Android"
+  screenRecordConfiguration:
+    preferableRecorderType: "screenshot"
+    videoConfiguration:
+      enabled: false
+      width: 1080
+      height: 1920
+      bitrateMbps: 2
+      timeLimit: 300
+    screenshotConfiguration:
+      enabled: false
+      width: 1080
+      height: 1920
+      delayMs: 200
+  outputs:
+  - application: "ultron-app.apk"
+    testApplication: "ultron-androidTest.apk"
+  autoGrantPermission: true
+  applicationPmClear: true
+  testApplicationPmClear: true
+  waitForDevicesTimeoutMillis: 60000
+  allureConfiguration:
+    enabled: true
+deviceInitializationTimeoutMillis: 180000
+filteringConfiguration:
+  allowlist:
+    - type: "package"
+      values:
+        - "com.atiurin.sampleapp.tests.compose"
