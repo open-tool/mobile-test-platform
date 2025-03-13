@@ -41,7 +41,16 @@ class FarmDeviceConnectionService(
         scope.launch { connectReadyDevices() }
     }
 
-    fun runConnector(amount: Int) {
+    override fun disconnect() {
+        runCatching {
+            adbServer.disconnect(devices)
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            farmClient.releaseAllCaptured()
+        }
+    }
+
+    private fun runConnector(amount: Int) {
         var connectedDevices = 0
         CoroutineScope(Dispatchers.IO).launch {
             while (connectedDevices != amount){
@@ -64,15 +73,6 @@ class FarmDeviceConnectionService(
         }
     }
 
-    override fun disconnect() {
-        runCatching {
-            adbServer.disconnect(devices)
-        }
-        CoroutineScope(Dispatchers.IO).launch {
-            farmClient.releaseAllCaptured()
-        }
-    }
-
     private suspend fun connectReadyDevices() {
         val notReadyDevices = devices.filter { it.state.isPreparing() }.map { it.id }
         if (notReadyDevices.isEmpty()) return
@@ -84,7 +84,7 @@ class FarmDeviceConnectionService(
             deviceToConnectChannel.send(updatedDevice)
         }
         if (devices.count { it.state.isPreparing() } > 0) {
-            delay(10000)
+            delay(5000)
             connectReadyDevices()
         }
     }

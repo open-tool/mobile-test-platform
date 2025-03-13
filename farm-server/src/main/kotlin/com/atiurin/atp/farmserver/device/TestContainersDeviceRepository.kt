@@ -49,7 +49,7 @@ class TestContainersDeviceRepository @Autowired constructor(
             isDeviceAlive(farmDevice.id)
         }
         val state = if (isDeviceCreated){
-            log.info { "Change device ${farmDevice.id} state to ${DeviceState.READY} as it's booted. $farmDevice" }
+            log.info { "Change device ${farmDevice.id} state to ${DeviceState.READY} as it's booted." }
             DeviceState.READY
         } else {
             log.info { "Change device ${farmDevice.id} state to ${DeviceState.BROKEN} as it's not booted during $bootTimeout sec. $farmDevice" }

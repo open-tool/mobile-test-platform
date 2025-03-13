@@ -16,7 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue
 class MarathonTestRunCommand(
     private val deviceAmount: Int,
     private val groupId: String,
-    private val isAllure: Boolean = false,
+    private val isAllureWatch: Boolean = false,
     private val marathonConfigFilePath: String? = null,
     private val adbPortVariable: String? = null,
     private val marathonCommand: String? = null,
@@ -40,7 +40,7 @@ class MarathonTestRunCommand(
 
     private fun buildCliCommand(): String {
         val cmd = StringBuilder()
-        if (isAllure) cmd.append("allurectl watch -- ")
+        if (isAllureWatch) cmd.append("allurectl watch -- ")
         marathonCommand?.let { cmd.append("$it ") } ?: cmd.append("marathon ")
         marathonConfigFilePath?.let { cmd.append("-m $marathonConfigFilePath ") }
         log.info { "Cli command = '$cmd'" }

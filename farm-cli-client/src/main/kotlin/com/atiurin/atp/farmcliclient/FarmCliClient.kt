@@ -20,24 +20,19 @@ class FarmCliClient : CliktCommand() {
     val urls: List<String>? by option("-u", "--url").multiple()
     val command: Command? by option("-c", "--command").enum<Command>()
     val deviceAmount by option("-da", "--device_amount").int().required()
-
-    @Deprecated("api option will be deleted soon. Use groupId")
-    val api by option("-a", "--api")
     val groupId by option("-g", "--group_id")
     val runCommand by option("-rc", "--run_command")
-    val allure by option("-aw", "--allure").flag()
-    val marathon by option("-m", "--marathon").flag()
+    val allureWatch by option("-aw", "--allure", "--allure_watch").flag()
     val marathonCommand by option("-mcmd", "--marathon_command")
     val marathonConfigFilePath by option("-mc", "--marathon_config")
-    val environments: Map<String, String> by option("-e", "--env").associate()
     val marathonAdbPortVariable by option("-mapv", "--marathon_adb_port_variable")
+    val environments: Map<String, String> by option("-e", "--env").associate()
     val userAgent by option("-ua", "--user_agent")
     val deviceConnectionTimeoutSec by option("-dct", "--device_connection_timeout_sec").long()
     val timeoutSec by option("-to", "--timeout_sec").long()
 
-
     override fun run() {
-        val group = groupId ?: api ?: throw RuntimeException("Specify -g or --group_id option.")
+        val group = groupId ?: throw RuntimeException("Specify -g or --group_id option.")
         val farmUrls = urls?.map {
             getFarmUrlFromString(it)
         } ?: listOf(getFarmUrlFromString("http://localhost:8080"))
@@ -57,7 +52,7 @@ class FarmCliClient : CliktCommand() {
                 MarathonTestRunCommand(
                     deviceAmount = deviceAmount,
                     groupId = group,
-                    isAllure = allure,
+                    isAllureWatch = allureWatch,
                     marathonConfigFilePath = marathonConfigFilePath,
                     adbPortVariable = marathonAdbPortVariable,
                     marathonCommand = marathonCommand,
@@ -69,8 +64,6 @@ class FarmCliClient : CliktCommand() {
         }
         if (!isSuccess) exitProcess(1)
     }
-
-
 }
 
 fun main(args: Array<String>) = FarmCliClient().main(args)
