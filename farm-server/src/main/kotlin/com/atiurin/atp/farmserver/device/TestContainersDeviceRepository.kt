@@ -30,6 +30,12 @@ class TestContainersDeviceRepository @Autowired constructor(
         val container = AndroidContainer<Nothing>(DockerImageName.parse(image)).apply {
             withCreateContainerCmdModifier { cmd ->
                 cmd.hostConfig?.withDevices(Device("rwm", "/dev/kvm", "/dev/kvm"))
+                farmConfig.get().apply {
+                    emulatorParams?.let { params -> cmd.withEnv("EMULATOR_PARAMS", params) }
+                    emulatorEnvironments.forEach { (key, value) ->
+                        cmd.withEnv(key, value)
+                    }
+                }
             }
         }
 
