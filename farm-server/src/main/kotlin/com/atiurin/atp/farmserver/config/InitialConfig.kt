@@ -12,7 +12,9 @@ data class InitialConfig(
     val startPort: Int = 0,
     val endPort: Int = 65534,
     val imagesMap: Map<String, String> = mapOf(),
-    val androidContainerAdbPath: String? = null
+    val androidContainerAdbPath: String? = null,
+    val emulatorParams: String? = null,
+    val emulatorEnvironments: Map<String, String> = mapOf()
 )
 
 fun InitialConfig.toConfig(farmMode: FarmMode = FarmMode.LOCAL) = Config(
@@ -24,6 +26,8 @@ fun InitialConfig.toConfig(farmMode: FarmMode = FarmMode.LOCAL) = Config(
     startPort = this.startPort,
     endPort = this.endPort,
     farmMode = farmMode,
-    androidContainerAdbPath = this.androidContainerAdbPath ?: "/android/sdk/platform-tools"
+    androidContainerAdbPath = this.androidContainerAdbPath ?: "/android/sdk/platform-tools",
+    emulatorParams = this.emulatorParams,
+    emulatorEnvironments = this.emulatorEnvironments.toMutableMap()
 )
 

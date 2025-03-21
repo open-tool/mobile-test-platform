@@ -28,4 +28,5 @@ farm-server --max_amount 5 \
   --end_port 11000 \
   --keep_alive_devices 30=2 \
   --device_busy_timeout 3600 \
-  --img 30=us-docker.pkg.dev/android-emulator-268719/images/30-google-x64:30.1.2
+  --img 30=us-docker.pkg.dev/android-emulator-268719/images/30-google-x64:30.1.2 \
+  --emulator_params "-gpu host"
