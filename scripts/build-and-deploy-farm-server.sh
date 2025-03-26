@@ -2,7 +2,10 @@
 APP_VERSION=$(cat gradle.properties | grep 'appVersion' | cut -d'=' -f2)
 
 # Run Gradle to clean and build the farm-server distribution zip
-./gradlew clean :farm-server:distZip
+./gradlew :farm-server:distZip
+
+# Delete previous deployment
+rm -rf deploy
 
 # Ensure the deploy directory exists
 mkdir -p deploy
@@ -20,4 +23,10 @@ export PATH=$PATH:$(pwd)/deploy/farm-server/bin
 export FARM_MODE=local
 
 # Start the farm-server with specific configuration
-farm-server --max_amount 5 -kad 30=2 --device_busy_timeout 1800 -i 30=us-docker.pkg.dev/android-emulator-268719/images/30-google-x64:30.1.2
+farm-server --max_amount 5 \
+  --start_port 10000 \
+  --end_port 11000 \
+  --keep_alive_devices 30=2 \
+  --device_busy_timeout 3600 \
+  --img 30=us-docker.pkg.dev/android-emulator-268719/images/30-google-x64:30.1.2 \
+  --emulator_params "-gpu host"

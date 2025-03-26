@@ -28,6 +28,7 @@ import domain.command.Command
 import domain.command.getPlatformCommands
 import presentation.ui.components.badge.StateBadge
 import presentation.ui.components.badge.StatusBadge
+import utils.formatTimestampToDateString
 
 @Composable
 fun DeviceDetailsScreen(
@@ -90,8 +91,9 @@ fun DeviceDetailsView(poolDevice: PoolDevice) {
         PropertyItem("image", poolDevice.device.dockerImage)
         PropertyItem("desc", poolDevice.desc)
         PropertyItem("userAgent", poolDevice.userAgent)
-        PropertyItem("busy time", poolDevice.statusTimestampSec.toString())
-        PropertyItem("last ping", poolDevice.lastPingTimestampSec.toString())
+        PropertyItem("state time", formatTimestampToDateString(poolDevice.statusTimestampSec))
+        // TODO: uncomment once last ping will be supported
+//        PropertyItem("last ping", formatTimestampToDateString(poolDevice.lastPingTimestampSec))
     }
 }
 

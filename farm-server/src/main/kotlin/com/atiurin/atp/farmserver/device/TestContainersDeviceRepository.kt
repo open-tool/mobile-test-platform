@@ -30,6 +30,12 @@ class TestContainersDeviceRepository @Autowired constructor(
         val container = AndroidContainer<Nothing>(DockerImageName.parse(image)).apply {
             withCreateContainerCmdModifier { cmd ->
                 cmd.hostConfig?.withDevices(Device("rwm", "/dev/kvm", "/dev/kvm"))
+                farmConfig.get().apply {
+                    emulatorParams?.let { params -> cmd.withEnv("EMULATOR_PARAMS", params) }
+                    emulatorEnvironments.forEach { (key, value) ->
+                        cmd.withEnv(key, value)
+                    }
+                }
             }
         }
 
@@ -49,7 +55,7 @@ class TestContainersDeviceRepository @Autowired constructor(
             isDeviceAlive(farmDevice.id)
         }
         val state = if (isDeviceCreated){
-            log.info { "Change device ${farmDevice.id} state to ${DeviceState.READY} as it's booted. $farmDevice" }
+            log.info { "Change device ${farmDevice.id} state to ${DeviceState.READY} as it's booted." }
             DeviceState.READY
         } else {
             log.info { "Change device ${farmDevice.id} state to ${DeviceState.BROKEN} as it's not booted during $bootTimeout sec. $farmDevice" }

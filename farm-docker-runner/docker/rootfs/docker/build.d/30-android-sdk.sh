@@ -1,7 +1,6 @@
 mkdir -p ${ANDROID_HOME}/platforms && \
 mkdir -p ${ANDROID_HOME}/platform-tools && \
 mkdir -p ${ANDROID_HOME}/cmdline-tools && \
-mkdir -p ${ANDROID_HOME}/system-images/android && \
 
 wget -nv -O platform-tools.zip https://dl.google.com/android/repository/platform-tools-latest-linux.zip && \
 unzip -q platform-tools.zip -d ${ANDROID_HOME} && \

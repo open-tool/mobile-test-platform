@@ -1,7 +1,7 @@
 FROM alpine:latest
 # versions
 ARG APP_VERSION=0.0.1
-ENV MARATHON_VERSION=0.8.4
+ENV MARATHON_VERSION=0.10.3
 ENV ALLURE_VERSION=2.15.1
 ENV JAVA_VERSION=17
 ENV APPS_DIR=/apps
@@ -10,7 +10,7 @@ RUN echo $APP_VERSION
 ENV ANDROID_HOME=/opt/android-sdk
 ENV JAVA_HOME=/usr/lib/jvm/java-${JAVA_VERSION}-openjdk
 ENV PATH=$PATH:${ANDROID_HOME}/tools:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/skins:${ANDROID_HOME}/cmdline-tools/bin
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib:/usr/lib:/usr/local/lib:${ANDROID_HOME}/emulator/lib64/qt/lib:${ANDROID_HOME}/emulator/lib64/libstdc++:${ANDROID_HOME}/emulator/lib64:${ANDROID_HOME}/emulator/lib64/gles_swiftshader
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lib:/usr/lib:/usr/local/lib
 COPY rootfs /
 RUN /docker/build
 CMD ["/bin/sh"]

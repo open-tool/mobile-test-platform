@@ -20,4 +20,6 @@ data class Config(
     var brokenDevicesMonitorDelay: Long = 30_000L,
     var androidContainerAdbPath: String = "/android/sdk/platform-tools",
     var serverAliveTimeoutSec: Long = 30,
+    var emulatorParams: String? = null,
+    var emulatorEnvironments: MutableMap<String, String> = mutableMapOf(),
 )
