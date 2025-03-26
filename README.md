@@ -56,7 +56,7 @@ Project support Compose Multiplatform App to manage devices and explore servers.
 ### Roadmap
 
 - Desktop-App: device details support device removing 
-- Desktop-App: Servers support 
+- Device Ping from client to server
 - K8s Support (?)
 
 # Build docker runner image
@@ -75,15 +75,18 @@ Try the runner image locally:
 ```shell
 docker run -it --network host \
   --name farm-runner \
-  -v "$(pwd)/ultron-artifacts:/ultron-artifacts" \
+  -v "$(pwd)/artifacts-folder:/artifacts-folder" \
   android-runner:latest /bin/sh
 ```
+`artifacts-folder` - folder that contains app.apk, test-apk, MarathonfileName
 
 The container console should be opened:
 
 ```shell
 farm-cli-client --device_amount 2 --group_id 30 \
-  --user_agent UltronTest \
+  --user_agent ProjectName \
   --url  http://localhost:8080 \
-  --marathon_config MarathonfileUltron
+  --marathon_config MarathonfileName
 ```
+
+by default `marathon_config` uses value = `Marathonfile`
