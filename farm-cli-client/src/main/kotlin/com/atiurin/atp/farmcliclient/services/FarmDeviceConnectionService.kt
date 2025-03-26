@@ -44,8 +44,10 @@ class FarmDeviceConnectionService(
     override fun disconnect() {
         runCatching {
             adbServer.disconnect(devices)
+        }.onFailure { ex ->
+            log.error { "Failed to disconnect devices: ${devices.map { it.id }}. Error: $ex" }
         }
-        CoroutineScope(Dispatchers.IO).launch {
+        runBlocking {
             farmClient.releaseAllCaptured()
         }
     }
