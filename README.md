@@ -6,6 +6,7 @@ The project provides a full infrastructure for Android UI tests. It has several 
 - Artifacts to build a Docker image with all required components: farm-cli-client, ADB, Marathon-runner, allurectl.
 - Desktop UI application to monitor and manage devices.
 
+
 ## Architecture
 
 *Note: Currently, only Android emulators in Docker containers are supported.*
@@ -14,9 +15,17 @@ The project provides a full infrastructure for Android UI tests. It has several 
 
 ## farm-server
 
+Server Features
+- Automatic Device Recreation: After each use, devices are automatically recreated to ensure a clean environment between test runs.
+- Device Health Monitoring: The server continuously monitors device states and automatically recreates problematic devices.
+- Idle Device Cleanup: The server tracks devices allocated to clients and releases them if they exceed the usage timeout. This behavior is controlled by the `device_busy_timeout` parameter.	
+- Dynamic Reconfiguration: The server can be reconfigured on the fly without requiring a restart.
+- Configurable Port Range: The server allows device connections within a specified port range. See the `start_port` and `end_port` parameters for configuration.
+- Swagger: it could be found with URL [server_url]/swagger-ui/index.html
+  
 The server is a Kotlin Spring Boot application.
 
-The example of building and launching the server application can be found in the `scripts/build-and-deploy-farm-server.sh` file.
+An example of building and launching the server application can be found in the `scripts/build-and-deploy-farm-server.sh` file.
 
 To build the server application, run:
 
